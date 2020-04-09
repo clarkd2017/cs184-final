@@ -14,6 +14,14 @@ Goals and Deliverables:
   
 Schedule:
 
+  -Week 1:
+  
+  -Week 2:
+  
+  -Week 3:
+  
+  -Week 4:
+  
 Resources:
 
   -Project 4 code
