@@ -1,4 +1,4 @@
-# Final Project: 3D Position Based Fluid Simulation
+# Final Project: 3D Position Based Rain Simulation
 
 Team Members: Jason Chang, Kristine Chen, and Dakota Clark
 
