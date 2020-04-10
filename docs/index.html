@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Final Project</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2020</h1>
+<h1 align="middle">Final Project: Rain Simulation</h1>
+<h2 align="middle">Jason Chang, Kristine Chen, and Dakota Clark</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>This project focuses on using particle simulation to create a realistic simulation of rain interacting with a simple flat surface. To do so, we will model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting a surface. As a result, the simulation will also model the effects of rain, such as ripples and the formation of puddles.</p>
+
+<h2 align="middle">Problem Description</h2>
+<p> We will extend the Project 4 code to create our rain simulation. We will first define a class for modeling a water particle, which will maintain properties like previous and current positions, particle size, and mass. We will then model the forces that will act on these particles, particularly the tensile forces between water particles. We will model the necessary physical constraints on our system based on Muller and Macklin’s conditions to maintain properties such as the shape and density of water droplets, and realistically simulate collision interactions. Finally, to model rain’s reflective and refractive properties, our simulation will model each particle as a lens. Thus, each particle will be assigned a spectral value that is more dependent on the directionality of environment radiances. </p>
+
+<h2 align="middle">Goals and Deliverables</h2>
+
+<ul>
+<li> Demo: We will be running a non-interactive simulation of rain droplets falling into a puddle lying on a plane.</li>
+<li> Measure of quality: We will judge the quality of our simulation by the speed of running it, and how accurately our model simulates the interaction of fluid particles. Specifically, we will optimize our implementation to realistically simulate fluids without apparent lag or drop in framerate, and obeys the physical constraints we sought to impose on the simulation.</li>
+<li> Plan: For our project to be successful, it must realistically simulate at least one raindrop falling into a shallow puddle of water lying on a plane. From the initial time step in which the drop falls from a fixed point above the plane to an appropriate time after the drop hits the plane, the simulation should obey the physics that fluids would be constrained to in the real world. This includes the apparent realism of the motion of particles and shaders we applied to our model.
+</li>
+<li> Aspirational Plan: We would like to implement fluid-solid object collision if we get ahead of schedule. Interactions between fluids and solids follow different physical constraints than fluids between themselves, so we believe that it could prove to be an interesting stretch goal.</li>
+</ul>
+
+<h2 align="middle">Schedule</h2>
+
+<h2 align="middle">Resources</h2>
+
+</body>
+</html>
