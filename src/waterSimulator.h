@@ -16,8 +16,8 @@
 
 using namespace nanogui;
 
-//struct UserShader;
-//enum ShaderTypeHint { WIREFRAME = 0, NORMALS = 1, PHONG = 2 };
+struct UserShader;
+enum ShaderTypeHint { WIREFRAME = 0, NORMALS = 1, PHONG = 2 };
 
 class WaterSimulator {
 public:
@@ -76,8 +76,8 @@ private:
 
   int active_shader_idx = 0;
 
-//  vector<UserShader> shaders;
-//  vector<std::string> shaders_combobox_names;
+  vector<UserShader> shaders;
+  vector<std::string> shaders_combobox_names;
   
   // OpenGL textures
   
@@ -142,17 +142,17 @@ private:
   Vector2i default_window_size = Vector2i(1024, 800);
 };
 
-//struct UserShader {
-//  UserShader(std::string display_name, GLShader nanogui_shader, ShaderTypeHint type_hint)
-//  : display_name(display_name)
-//  , nanogui_shader(nanogui_shader)
-//  , type_hint(type_hint) {
-//  }
-//
-//  GLShader nanogui_shader;
-//  std::string display_name;
-//  ShaderTypeHint type_hint;
-//
-//};
+struct UserShader {
+  UserShader(std::string display_name, GLShader nanogui_shader, ShaderTypeHint type_hint)
+  : display_name(display_name)
+  , nanogui_shader(nanogui_shader)
+  , type_hint(type_hint) {
+  }
+
+  GLShader nanogui_shader;
+  std::string display_name;
+  ShaderTypeHint type_hint;
+
+};
 
 #endif /* waterSimulator_h */
