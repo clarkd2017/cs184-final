@@ -267,9 +267,9 @@ void WaterSimulator::drawContents() {
 //    break;
   }
 
-//  for (CollisionObject *co : *collision_objects) {
-//    co->render(shader);
-//  }
+  for (CollisionObject *co : *collision_objects) {
+    co->render(shader);
+  }
 }
 
 void WaterSimulator::drawWireframe(GLShader &shader) {
@@ -323,9 +323,9 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
   shader.uploadAttrib("in_position", positions, false);
   // Commented out: the wireframe shader does not have this attribute
   //shader.uploadAttrib("in_normal", normals);
-
+    
+  glad_glPointSize(64.0);
   shader.drawArray(GL_POINTS, 0, water->point_masses.size());
-  
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
 #endif
