@@ -136,8 +136,13 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
         p->predicted_position = p->position + delta_t * p->velocity;
     }
 
-    // find neighboring particles
-    // TODO: use KD tree --> get and set each particles neighbor attribute
+    // TODO: find neighboring particles
+    // construct KD tree
+    cv::Mat M(rho_0 * rho_0 * rho_0, 3, CV_64F);
+
+    for (auto *p: particles) {
+        p->neighbors = ;
+    }
 
     // solver loop
     for (unsigned it = 0; it < solver_iters; it++) {
