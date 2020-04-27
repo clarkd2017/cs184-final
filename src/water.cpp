@@ -83,6 +83,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
 
     for (unsigned it = 0; it < solver_iters; it++) {
         // calculate lambda_i
+        // TODO: this loop is crazy slow
         for (auto &p_i: point_masses) {
             float rho_i = 0.0;
             for (auto *p_j: p_i.neighbors) {
@@ -90,6 +91,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
             }
             float C_i = rho_i / rho_0 - 1.0;
             float grad_sum = 0.0;
+            // TODO: not 100% sure about this loop
             for (auto &p_k: point_masses) {
                 Vector3D grad_pk_Ci = Vector3D();
                 if (&p_k == &p_i) {
@@ -97,7 +99,6 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
                         grad_pk_Ci += p_i.gradW(*p_j, h);
                     }
                 } else {
-                    // not 100% sure about this
                     grad_pk_Ci = -1.0 * p_i.gradW(p_k, h);
                 }
                 grad_pk_Ci /= rho_0;
@@ -105,7 +106,6 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
             }
             p_i.lambda = -C_i / (grad_sum + epsilon);
         }
-
         for (auto &p_i: point_masses) {
             // calculate s_corr (artificial pressure term) and delta_p_i
             for (auto *p_j: p_i.neighbors) {
@@ -141,7 +141,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
 
         // update position
         p_i.last_position =  p_i.position;
-        //p_i.position = p_i.predicted_position;
+        p_i.position = p_i.predicted_position;
     }
 }
 
