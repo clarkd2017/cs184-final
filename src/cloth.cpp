@@ -34,13 +34,14 @@ void Cloth::buildGrid() {
   /* ASSUMPTION: Water is a cube of side length side_length
    *
    * struct Particle {
-   *    bool pinned
-   *    Vector3Df start_position
    *    Vector3Df position
-   *    Vector3Df next_position
    *    Vector3Df last_position
-   *    float mass
-   *    float density
+   *    Vector3Df predicted_position
+   *    Vector3Df velocity
+   *    vector<Particle *> neighbors
+   *    float lambda
+   *    Vector3Df delta_p
+   *    float radius
    * }
    *
    * struct Water {
@@ -58,53 +59,148 @@ void Cloth::buildGrid() {
    *    return 45.0 / (PI * pow(h, 6.0)) * pow(h - norm(r), 2.0) / norm(r) * r;
    * }
    *
+   * void Plane::collide(Particle &p, float delta_t) {
+   *    float t = dot(point - p.last_position, normal) / dot(p.velocity, normal);
+   *    if (t >= 0 && t <= delta_t) {
+   *        Vector3Df tan_p = p.last_position + t * p.velocity;
+   *        Vector3Df ri = p.velocity.unit();
+   *        p.velocity = ri - 2 * dot(ri, normal) * normal;
+   *        p.predicted_position = tan_p + (delta_t - t) * p.velocity;
+   *    }
+   * }
+   *
+   * void Particle::collide(Particle &p) {
+   *    // not 100% sure about this
+   *    if (norm(p.predicted_position - predicted_position)) <= 2 * particle_radius) {
+   *        Vector3Df temp_p = predicted_position;
+   *        Vector3Df temp_v = velocity;
+   *        predicted_position = p.predicted_position;
+   *        velocity = p.velocity;
+   *        p.predicted_position = temp_p;
+   *        p.velocity = temp_v;
+   *    }
+   * }
+   *
    * User-defined constants:
    *    rho_0 := rest density (kg/m^3)
    *    epsilon := relaxation parameter
    *    h := scale parameter
    *    sigma := normalization factor
    *    d := number of dimensions
+   *    solver_iters := number of solver iterations
+   *
+   * Particle mass: 1.0kg
+   * [our own param] Particle radius (particle_radius): 0.01m
+   * Kernel radius (h): 0.1m
+   * Rest density (rho): 6378.0kg/m^2
+   * Density Iterations: 4
+   * Time step (dt): 0.0083s (2 substeps of a 60hz frame time)
+   * CFM Parameter (epsilon): 600
+   * Artificial Pressure Strength (k): 0.0001
+   * Artificial Pressure Radius (delta q): 0.03m
+   * Artificial Pressure Power (n): 4
+   * Artificial Viscosity (c): <= 0.01
    * */
   particles.reserve(rho_0 * rho_0 * rho_0);
-  springs.reserve(rho_0 * rho_0 * rho_0 * 6);
   for (float x = 0.0; x < side_length; x += side_length / rho_0) {
       for (float y = 0.0; y < side_length; y += side_length / rho_0) {
           for (float z = 0.0; z < side_length; z += side_length / rho_0) {
-              Vector3Df *p = new Vector3Df(x, y, z);
+              Particle *p = new Particle();
+              p->position = Vector3Df(x, y, z);
+              p->last_position = p->position;
               particles.emplace_back(p);
           }
       }
   }
-  // Spring forces
 }
 
 void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParameters *cp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
+    // reset certain Particle fields
+    for (auto *p: particles) {
+        p->predicted_position *= 0.0;
+        p->neighbors.clear();
+        p->lambda = 0.0;
+        p->delta_p *= 0.0;
+    }
+
     // apply forces to update position
+    double delta_t = 1.0f / frames_per_sec / simulation_steps;
+    Vector3Df f_ext = Vector3Df();
+    for (auto a: external_accelerations) {
+        f_ext += a;
+    }
+    for (auto *p: particles) {
+        p->velocity += delta_t * f_ext;
+        p->predicted_position = p->position + delta_t * p->velocity;
+    }
+
+    // find neighboring particles
+    // TODO: use KD tree --> get and set each particles neighbor attribute
+
+    // solver loop
+    for (unsigned it = 0; it < solver_iters; it++) {
+        // calculate lambda_i
+        for (auto *p_i: particles) {
+            float rho_i = 0.0;
+            for (auto *p_j: p_i->neighbors) {
+                rho_i += mass * W(p_i->position - p_j->position);
+            }
+            float C_i = rho_i / rho_0 - 1.0;
+            float grad_sum = 0.0;
+            for (auto *p_k: particles) {
+                Vector3Df grad_pk_Ci = Vector3DF();
+                if (p_k == p_i) {
+                    for (auto *p_j: p_i->neighbors) {
+                        grad_pk_Ci += gradW(p_i->position - p_j->position);
+                    }
+                } else {
+                    // not 100% sure about this
+                    grad_pk_Ci = -gradW(p_i->position - p_k->position);
+                }
+                grad_pk_Ci /= rho_0;
+                grad_sum += pow(norm(grad_pk_Ci), 2.0);
+            }
+            p_i->lambda = -C_i / (grad_sum + epsilon);
+        }
+
+        for (auto *p_i: particles) {
+            // calculate s_corr (artificial pressure term) and delta_p_i
+            for (auto *p_j: p_i->neighbors) {
+                float s_corr = -k * pow(W(p_i->position - p_j->position) / W(delta_q), (float) n);
+                p_i->delta_p += (p_i->lambda + p_j->lambda + s_corr) * gradW(p_i->position - p_j->position);
+            }
+            p_i->delta_p /= rho_0;
+
+            // collide with other particles
+            for (auto *p_j: p_i->neighbors) {
+                p_i->collide(*p_j)
+            }
+
+            // collide with objects (planes)
+            for (auto obj: *collision_objects) {
+                obj->collide(*p_i);
+            }
+        }
+
+        // update predicted positions
+        for (auto *p_i: particles) {
+            p_i->predicted_position += p_i->delta_p;
+        }
+    }
 
     for (auto *p_i: particles) {
-        float rho_i = 0.0;
-        for (auto *p_j: particles) {
-            rho_i += p_j->mass * W(p_i->position - p_j->position);
+        // update velocity
+        p_i->velocity = 1.0 / delta_t * (p_i->predicted_position - p_i->position);
 
-        }
-        float C_i = rho_i / rho_0 - 1.0;
-        float grad_sum = 0.0;
-        for (auto *p_k: particles) {
-            Vector3Df grad_pk_Ci = Vector3DF();
-            if (p_k == p_i) {
-                for (auto *p_j: particles) {
-                    grad_pk_Ci += gradW(p_i->position - p_j->position);
-                }
-            } else {
-                grad_pk_Ci = -gradW(p_i->position - p_j->position);
-            }
-            grad_pk_Ci /= rho_0;
-            grad_sum += pow(norm(grad_pk_Ci), 2.0);
-        }
-        float lambda_i = -C_i / (grad_sum + epsilon);
-        // delta p_i calc
+        // TODO: vorticity confinement
+
+        // TODO: viscosity constraint
+
+        // update position
+        p_i->last_position =  p_i->position;
+        p_i->position = p_i->predicted_position;
     }
 }
 
