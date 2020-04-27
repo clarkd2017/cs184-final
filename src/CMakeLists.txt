@@ -12,7 +12,7 @@ set(CLOTHSIM_VIEWER_SOURCE
 
     # Application
     main.cpp
-    clothSimulator.cpp
+    waterSimulator.cpp
 
     # Miscellaneous
     # png.cpp
