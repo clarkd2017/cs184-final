@@ -169,7 +169,7 @@ bool loadObjectsFromFile(string filename, Water *water, WaterParameters *wp, vec
   // Loop over objects in scene
   for (json::iterator it = j.begin(); it != j.end(); ++it) {
     string key = it.key();
-
+    cout << filename;
     // Check that object is valid
     unordered_set<string>::const_iterator query = VALID_KEYS.find(key);
     if (query == VALID_KEYS.end()) {
@@ -379,7 +379,7 @@ int main(int argc, char **argv) {
   if (!file_specified) { // No arguments, default initialization
     std::stringstream def_fname;
     def_fname << project_root;
-    def_fname << "/scene/pinned2.json";
+    def_fname << "/scene/water_cube.json";
     file_to_load_from = def_fname.str();
   }
   

@@ -71,11 +71,72 @@ void load_cubemap(int frame_idx, GLuint handle, const std::vector<std::string>& 
   }
 }
 
+void WaterSimulator::load_shaders() {
+  std::set<std::string> shader_folder_contents;
+  bool success = FileUtils::list_files_in_directory(m_project_root + "/shaders", shader_folder_contents);
+  if (!success) {
+    std::cout << "Error: Could not find the shaders folder!" << std::endl;
+  }
+  
+  std::string std_vert_shader = m_project_root + "/shaders/Default.vert";
+  
+  for (const std::string& shader_fname : shader_folder_contents) {
+    std::string file_extension;
+    std::string shader_name;
+    
+    FileUtils::split_filename(shader_fname, shader_name, file_extension);
+    
+    if (file_extension != "frag") {
+      std::cout << "Skipping non-shader file: " << shader_fname << std::endl;
+      continue;
+    }
+    
+    std::cout << "Found shader file: " << shader_fname << std::endl;
+    
+    // Check if there is a proper .vert shader or not for it
+    std::string vert_shader = std_vert_shader;
+    std::string associated_vert_shader_path = m_project_root + "/shaders/" + shader_name + ".vert";
+    if (FileUtils::file_exists(associated_vert_shader_path)) {
+      vert_shader = associated_vert_shader_path;
+    }
+    
+    GLShader nanogui_shader;
+    nanogui_shader.initFromFiles(shader_name, vert_shader,
+                                  m_project_root + "/shaders/" + shader_fname);
+    
+    // Special filenames are treated a bit differently
+    ShaderTypeHint hint;
+    if (shader_name == "Wireframe") {
+      hint = ShaderTypeHint::WIREFRAME;
+      std::cout << "Type: Wireframe" << std::endl;
+    } else if (shader_name == "Normal") {
+      hint = ShaderTypeHint::NORMALS;
+      std::cout << "Type: Normal" << std::endl;
+    } else {
+      hint = ShaderTypeHint::PHONG;
+      std::cout << "Type: Custom" << std::endl;
+    }
+    
+    UserShader user_shader(shader_name, nanogui_shader, hint);
+    
+    shaders.push_back(user_shader);
+    shaders_combobox_names.push_back(shader_name);
+  }
+  
+  // Assuming that it's there, use "Wireframe" by default
+  for (size_t i = 0; i < shaders_combobox_names.size(); ++i) {
+    if (shaders_combobox_names[i] == "Wireframe") {
+      active_shader_idx = i;
+      break;
+    }
+  }
+}
+
 WaterSimulator::WaterSimulator(std::string project_root, Screen *screen)
 : m_project_root(project_root) {
   this->screen = screen;
   
-//  this->load_shaders();
+  this->load_shaders();
 //  this->load_textures();
 
   glEnable(GL_PROGRAM_POINT_SIZE);
@@ -152,12 +213,12 @@ void WaterSimulator::drawContents() {
     }
   }
 
-  // Bind the active shader
+//   Bind the active shader
 
-//  const UserShader& active_shader = shaders[active_shader_idx];
-//
-//  GLShader shader = active_shader.nanogui_shader;
-//  shader.bind();
+  const UserShader& active_shader = shaders[active_shader_idx];
+
+  GLShader shader = active_shader.nanogui_shader;
+  shader.bind();
 
   // Prepare the camera projection matrix
 
@@ -169,14 +230,14 @@ void WaterSimulator::drawContents() {
 
   Matrix4f viewProjection = projection * view;
 
-//  shader.setUniform("u_model", model);
-//  shader.setUniform("u_view_projection", viewProjection);
+  shader.setUniform("u_model", model);
+  shader.setUniform("u_view_projection", viewProjection);
 
-//  switch (active_shader.type_hint) {
-//  case WIREFRAME:
-//    shader.setUniform("u_color", color, false);
-//    drawWireframe(shader);
-//    break;
+  switch (active_shader.type_hint) {
+  case WIREFRAME:
+    shader.setUniform("u_color", color, false);
+    drawWireframe(shader);
+    break;
 //  case NORMALS:
 //    drawNormals(shader);
 //    break;
@@ -204,14 +265,14 @@ void WaterSimulator::drawContents() {
 //    shader.setUniform("u_texture_cubemap", 5, false);
 //    drawPhong(shader);
 //    break;
-//  }
+  }
 
 //  for (CollisionObject *co : *collision_objects) {
 //    co->render(shader);
 //  }
 }
 
-//void WaterSimulator::drawWireframe(GLShader &shader) {
+void WaterSimulator::drawWireframe(GLShader &shader) {
 //  int num_structural_springs =
 //      2 * cloth->num_width_points * cloth->num_height_points -
 //      cloth->num_width_points - cloth->num_height_points;
@@ -223,15 +284,17 @@ void WaterSimulator::drawContents() {
 //  int num_springs = cp->enable_structural_constraints * num_structural_springs +
 //                    cp->enable_shearing_constraints * num_shear_springs +
 //                    cp->enable_bending_constraints * num_bending_springs;
-//
-//  MatrixXf positions(4, num_springs * 2);
-//  MatrixXf normals(4, num_springs * 2);
-//
-//  // Draw springs as lines
-//
-//  int si = 0;
-//
-//  for (int i = 0; i < cloth->springs.size(); i++) {
+
+  MatrixXf positions(4, water->point_masses.size());
+//  MatrixXf normals(4, water->point_masses.size());
+
+  // Draw springs as lines
+
+  int si = 0;
+
+  for (int i = 0; i < water->point_masses.size(); i++) {
+      
+      PointMass p = water->point_masses[i];
 //    Spring s = cloth->springs[i];
 //
 //    if ((s.spring_type == STRUCTURAL && !cp->enable_structural_constraints) ||
@@ -239,33 +302,35 @@ void WaterSimulator::drawContents() {
 //        (s.spring_type == BENDING && !cp->enable_bending_constraints)) {
 //      continue;
 //    }
-//
+
+      Vector3D p_pos = p.position;
+//      Vector3D p_n = p.normal();
 //    Vector3D pa = s.pm_a->position;
 //    Vector3D pb = s.pm_b->position;
 //
 //    Vector3D na = s.pm_a->normal();
 //    Vector3D nb = s.pm_b->normal();
-//
-//    positions.col(si) << pa.x, pa.y, pa.z, 1.0;
-//    positions.col(si + 1) << pb.x, pb.y, pb.z, 1.0;
-//
-//    normals.col(si) << na.x, na.y, na.z, 0.0;
-//    normals.col(si + 1) << nb.x, nb.y, nb.z, 0.0;
-//
-//    si += 2;
-//  }
-//
-//  //shader.setUniform("u_color", nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f), false);
-//  shader.uploadAttrib("in_position", positions, false);
-//  // Commented out: the wireframe shader does not have this attribute
-//  //shader.uploadAttrib("in_normal", normals);
-//
-//  shader.drawArray(GL_LINES, 0, num_springs * 2);
-//
-//#ifdef LEAK_PATCH_ON
-//  shader.freeAttrib("in_position");
-//#endif
-//}
+
+    positions.col(i) << p_pos.x, p_pos.y, p_pos.z, 1.0;
+    //positions.col(si + 1) << pb.x, pb.y, pb.z, 1.0;
+
+//    normals.col(i) << p_n.x, p_n.y, p_n.z, 0.0;
+    //normals.col(si + 1) << nb.x, nb.y, nb.z, 0.0;
+
+  }
+
+//  shader.setUniform("u_color", nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f), false);
+  shader.uploadAttrib("in_position", positions, false);
+  // Commented out: the wireframe shader does not have this attribute
+  //shader.uploadAttrib("in_normal", normals);
+
+  shader.drawArray(GL_POINTS, 0, water->point_masses.size());
+  
+#ifdef LEAK_PATCH_ON
+  shader.freeAttrib("in_position");
+#endif
+}
+    
 //
 //void ClothSimulator::drawNormals(GLShader &shader) {
 //  int num_tris = cloth->clothMesh->triangles.size();
