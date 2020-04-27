@@ -41,14 +41,11 @@ void Cloth::buildGrid() {
    *    vector<Particle *> neighbors
    *    float lambda
    *    Vector3Df delta_p
-   *    float radius
    * }
    *
    * struct Water {
    *    float side_length
    *    vector<Particle *> particles
-   *    vector<vector<int>> pinned
-   *    vector<Spring *> springs
    * }
    *
    * float W(Vector3Df r) {
@@ -101,6 +98,7 @@ void Cloth::buildGrid() {
    * Artificial Pressure Power (n): 4
    * Artificial Viscosity (c): <= 0.01
    * */
+  /*
   particles.reserve(rho_0 * rho_0 * rho_0);
   for (float x = 0.0; x < side_length; x += side_length / rho_0) {
       for (float y = 0.0; y < side_length; y += side_length / rho_0) {
@@ -112,11 +110,13 @@ void Cloth::buildGrid() {
           }
       }
   }
+   */
 }
 
 void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParameters *cp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
+    /*
     // reset certain Particle fields
     for (auto *p: particles) {
         p->predicted_position *= 0.0;
@@ -207,6 +207,7 @@ void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParame
         p_i->last_position =  p_i->position;
         p_i->position = p_i->predicted_position;
     }
+     */
 }
 
 void Cloth::build_spatial_map() {

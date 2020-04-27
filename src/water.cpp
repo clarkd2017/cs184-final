@@ -44,32 +44,105 @@ void Water::buildVolume() {
       }
     }
   }
-
-
-
 }
 
 void Water::simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
-//  double mass = width * height * wp->density / num_width_points / num_height_points;
-  double delta_t = 1.0f / frames_per_sec / simulation_steps;
+    // temporarily (permanently?) define some constants
+    unsigned solver_iters = 4;
+    float particle_mass = 1.0;
+    float rho_0 = 6378.0;
+    float epsilon = 600;
+    float k = 0.0001;
+    float h = 0.1;
+    float delta_q = 0.03;
+    float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(pow(h, 2.0) - pow(delta_q, 2.0), 3.0);
+    float n = 4.0;
 
-  // TODO (Part 2): Compute total force acting on each point mass.
+    // reset certain PointMass attributes
+    for (auto &p: point_masses) {
+        p.predicted_position *= 0.0;
+        p.neighbors.clear();
+        p.lambda = 0.0;
+        p.delta_p *= 0.0;
+    }
 
+    // apply forces to update position
+    double delta_t = 1.0f / frames_per_sec / simulation_steps;
+    Vector3D f_ext = Vector3D();
+    for (auto a: external_accelerations) {
+        f_ext += a;
+    }
+    for (auto &p: point_masses) {
+        p.velocity += delta_t * f_ext;
+        p.predicted_position = p.position + delta_t * p.velocity;
+    }
 
-  // TODO (Part 2): Use Verlet integration to compute new point mass positions
+    // TODO: find neighboring particles + populate each PM's neighbors attribute
 
+    for (unsigned it = 0; it < solver_iters; it++) {
+        // calculate lambda_i
+        for (auto &p_i: point_masses) {
+            float rho_i = 0.0;
+            for (auto *p_j: p_i.neighbors) {
+                rho_i += particle_mass * p_i.W(*p_j, h);
+            }
+            float C_i = rho_i / rho_0 - 1.0;
+            float grad_sum = 0.0;
+            for (auto &p_k: point_masses) {
+                Vector3D grad_pk_Ci = Vector3D();
+                if (&p_k == &p_i) {
+                    for (auto *p_j: p_i.neighbors) {
+                        grad_pk_Ci += p_i.gradW(*p_j, h);
+                    }
+                } else {
+                    // not 100% sure about this
+                    grad_pk_Ci = -1.0 * p_i.gradW(p_k, h);
+                }
+                grad_pk_Ci /= rho_0;
+                grad_sum += pow(grad_pk_Ci.norm(), 2.0);
+            }
+            p_i.lambda = -C_i / (grad_sum + epsilon);
+        }
 
-  // TODO (Part 4): Handle self-collisions.
+        for (auto &p_i: point_masses) {
+            // calculate s_corr (artificial pressure term) and delta_p_i
+            for (auto *p_j: p_i.neighbors) {
+                float s_corr = -k * pow(p_i.W(*p_j, h) / Wdq, n);
+                p_i.delta_p += (p_i.lambda + p_j->lambda + s_corr) * p_i.gradW(*p_j, h);
+            }
+            p_i.delta_p /= rho_0;
 
+            // collide with other particles
+            for (auto *p_j: p_i.neighbors) {
+                p_i.collide(*p_j);
+            }
 
-  // TODO (Part 3): Handle collisions with other primitives.
+            // collide with objects (planes)
+            for (auto obj: *collision_objects) {
+                obj->collide(p_i);
+            }
+        }
 
+        // update predicted positions
+        for (auto &p_i: point_masses) {
+            p_i.predicted_position += p_i.delta_p;
+        }
+    }
 
-  // TODO (Part 2): Constrain the changes to be such that the spring does not change
-  // in length more than 10% per timestep [Provot 1995].
+    for (auto &p_i: point_masses) {
+        // update velocity
+        p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
 
+        // TODO: vorticity confinement
+
+        // TODO: viscosity constraint
+
+        // update position
+        p_i.last_position =  p_i.position;
+        //p_i.position = p_i.predicted_position;
+    }
 }
 
 void Water::build_spatial_map() {

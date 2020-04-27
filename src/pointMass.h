@@ -16,9 +16,9 @@ struct PointMass {
         last_position(position) {}
 
   Vector3D normal();
-  Vector3D velocity(double delta_t) {
+  /*Vector3D velocity(double delta_t) {
     return (position - last_position) / delta_t;
-  }
+  }*/
 
   // static values
   bool pinned;
@@ -31,6 +31,35 @@ struct PointMass {
 
   // mesh reference
   Halfedge *halfedge;
+
+  // FINAL PROJECT: NEW STUFF
+  Vector3D predicted_position;
+  Vector3D velocity;
+  std::vector<PointMass *> neighbors;
+  float lambda;
+  Vector3D delta_p;
+  float radius = 0.01; // (constant) particle radius
+
+  void collide(PointMass p) {
+      // not 100% sure that this works
+      if ((p.predicted_position - predicted_position).norm() <= 2 * radius) {
+          Vector3D temp_p = predicted_position;
+          Vector3D temp_v = velocity;
+          predicted_position = p.predicted_position;
+          velocity = p.velocity;
+          p.predicted_position = temp_p;
+          p.velocity = temp_v;
+      }
+  }
+
+  float W(PointMass p, float h) {
+      return 315.0 / (64.0 * PI * pow(h, 9.0)) * pow(pow(h, 2.0) - pow((position - p.position).norm(), 2.0), 3.0);
+  }
+
+  Vector3D gradW(PointMass p, float h) {
+      float n = (position - p.position).norm();
+      return 45.0 / (PI * pow(h, 6.0)) * pow(h - n, 2.0) / n * (position - p.position);
+  }
 };
 
 #endif /* POINTMASS_H */
