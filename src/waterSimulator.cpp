@@ -238,13 +238,12 @@ void WaterSimulator::drawContents() {
     shader.setUniform("u_color", color, false);
     drawWireframe(shader);
     break;
-//  case NORMALS:
+  case NORMALS:
 //    drawNormals(shader);
-//    break;
-//  case PHONG:
+    break;
+  case PHONG:
   
     // Others
-    Vector3D cam_pos = camera.position();
 //    shader.setUniform("u_color", color, false);
 //    shader.setUniform("u_cam_pos", Vector3f(cam_pos.x, cam_pos.y, cam_pos.z), false);
 //    shader.setUniform("u_light_pos", Vector3f(0.5, 2, 2), false);
@@ -264,7 +263,7 @@ void WaterSimulator::drawContents() {
 //
 //    shader.setUniform("u_texture_cubemap", 5, false);
 //    drawPhong(shader);
-//    break;
+    break;
   }
 
   for (CollisionObject *co : *collision_objects) {
@@ -324,7 +323,7 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
   // Commented out: the wireframe shader does not have this attribute
   //shader.uploadAttrib("in_normal", normals);
     
-  glad_glPointSize(64.0);
+  glad_glPointSize(10.0);
   shader.drawArray(GL_POINTS, 0, water->point_masses.size());
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
