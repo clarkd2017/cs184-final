@@ -1,26 +1,33 @@
-#ifndef CGL_CLOTH_SIMULATOR_H
-#define CGL_CLOTH_SIMULATOR_H
+//
+//  waterSimulator.h
+//  clothsim
+//
+//  Created by Kristine Chen on 4/26/20.
+//
+
+#ifndef waterSimulator_h
+#define waterSimulator_h
 
 #include <nanogui/nanogui.h>
 
 #include "camera.h"
-#include "cloth.h"
+#include "water.h"
 #include "collision/collisionObject.h"
 
 using namespace nanogui;
 
-struct UserShader;
-enum ShaderTypeHint { WIREFRAME = 0, NORMALS = 1, PHONG = 2 };
+//struct UserShader;
+//enum ShaderTypeHint { WIREFRAME = 0, NORMALS = 1, PHONG = 2 };
 
-class ClothSimulator {
+class WaterSimulator {
 public:
-  ClothSimulator(std::string project_root, Screen *screen);
-  ~ClothSimulator();
+  WaterSimulator(std::string project_root, Screen *screen);
+  ~WaterSimulator();
 
   void init();
 
-  void loadCloth(Cloth *cloth);
-  void loadClothParameters(ClothParameters *cp);
+  void loadWater(Water *water);
+  void loadWaterParameters(WaterParameters *wp);
   void loadCollisionObjects(vector<CollisionObject *> *objects);
   virtual bool isAlive();
   virtual void drawContents();
@@ -61,16 +68,16 @@ private:
   CGL::Vector3D gravity = CGL::Vector3D(0, -9.8, 0);
   nanogui::Color color = nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f);
 
-  Cloth *cloth;
-  ClothParameters *cp;
+  Water *water;
+  WaterParameters *wp;
   vector<CollisionObject *> *collision_objects;
 
   // OpenGL attributes
 
   int active_shader_idx = 0;
 
-  vector<UserShader> shaders;
-  vector<std::string> shaders_combobox_names;
+//  vector<UserShader> shaders;
+//  vector<std::string> shaders_combobox_names;
   
   // OpenGL textures
   
@@ -135,17 +142,17 @@ private:
   Vector2i default_window_size = Vector2i(1024, 800);
 };
 
-struct UserShader {
-  UserShader(std::string display_name, GLShader nanogui_shader, ShaderTypeHint type_hint)
-  : display_name(display_name)
-  , nanogui_shader(nanogui_shader)
-  , type_hint(type_hint) {
-  }
-  
-  GLShader nanogui_shader;
-  std::string display_name;
-  ShaderTypeHint type_hint;
-  
-};
+//struct UserShader {
+//  UserShader(std::string display_name, GLShader nanogui_shader, ShaderTypeHint type_hint)
+//  : display_name(display_name)
+//  , nanogui_shader(nanogui_shader)
+//  , type_hint(type_hint) {
+//  }
+//
+//  GLShader nanogui_shader;
+//  std::string display_name;
+//  ShaderTypeHint type_hint;
+//
+//};
 
-#endif // CGL_CLOTH_SIM_H
+#endif /* waterSimulator_h */

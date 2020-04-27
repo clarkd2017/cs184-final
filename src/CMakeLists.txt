@@ -21,7 +21,10 @@ set(CLOTHSIM_VIEWER_SOURCE
 
     # Camera
     camera.cpp
-)
+    
+    # Fluid simulation objects
+    water.cpp
+    )
 
 # Windows-only sources
 if(WIN32)

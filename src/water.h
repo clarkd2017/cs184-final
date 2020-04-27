@@ -33,7 +33,7 @@ struct Water {
 
   void buildVolume();
 
-  void simulate(double frames_per_sec, double simulation_steps, ClothParameters *cp,
+  void simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
                 vector<Vector3D> external_accelerations,
                 vector<CollisionObject *> *collision_objects);
 

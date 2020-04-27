@@ -34,10 +34,10 @@ void Water::buildVolume() {
 
   for (int h = 0; h < num_height_points; h++){
     for (int w = 0; w < num_width_points; w++){
-      for (int z = 0; z < num_depth_points; z++){
+      for (int d = 0; d < num_depth_points; d++){
         double x = x_interval * w;
         double y = y_interval * h;
-        double z = z_interval * z
+          double z = z_interval * d;
 
         PointMass pm = PointMass(Vector3D(x, y, z), false);
         point_masses.emplace_back(pm);
@@ -49,10 +49,10 @@ void Water::buildVolume() {
 
 }
 
-void Water::simulate(double frames_per_sec, double simulation_steps, ClothParameters *cp,
+void Water::simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
-  double mass = width * height * cp->density / num_width_points / num_height_points;
+//  double mass = width * height * wp->density / num_width_points / num_height_points;
   double delta_t = 1.0f / frames_per_sec / simulation_steps;
 
   // TODO (Part 2): Compute total force acting on each point mass.
