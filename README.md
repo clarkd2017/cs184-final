@@ -1,29 +1,6 @@
-# Final Project: 3D Position Based Fluid Simulation
+# Final Project: 3D Position Based Rain Simulation
 
 Team Members: Jason Chang, Kristine Chen, and Dakota Clark
 
-Summary: 
+Summary: This project focuses on using particle simulation to create a realistic simulation of rain interacting with a simple flat surface. To do so, we will model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting a surface. As a result, the simulation will also model the effects of rain, such as ripples and the formation of puddles.
 
-Problem Description:
-
-Goals and Deliverables:
-
-  -Plan:
-  
-  -Aspirational Plan:
-  
-Schedule:
-
-  -Week 1:
-  
-  -Week 2:
-  
-  -Week 3:
-  
-  -Week 4:
-  
-Resources:
-
-  -Project 4 code
-  
-  -Macklin, M., & Müller, M. (2013). Position based fluids. ACM Transactions on Graphics, 32(4), 1. doi: 10.1145/2461912.2461984
