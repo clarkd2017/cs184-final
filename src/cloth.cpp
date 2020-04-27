@@ -31,31 +31,81 @@ Cloth::~Cloth() {
 }
 
 void Cloth::buildGrid() {
-  // TODO (Part 1): Build a grid of masses and springs.
-
+  /* ASSUMPTION: Water is a cube of side length side_length
+   *
+   * struct Particle {
+   *    bool pinned
+   *    Vector3Df start_position
+   *    Vector3Df position
+   *    Vector3Df next_position
+   *    Vector3Df last_position
+   *    float mass
+   *    float density
+   * }
+   *
+   * struct Water {
+   *    float side_length
+   *    vector<Particle *> particles
+   *    vector<vector<int>> pinned
+   *    vector<Spring *> springs
+   * }
+   *
+   * float W(Vector3Df r) {
+   *    return 315.0 / (64.0 * PI * pow(h, 9.0)) * pow(pow(h, 2.0) - pow(norm(r), 2.0), 3.0)
+   * }
+   *
+   * Vector3Df gradW(Vector3Df r) {
+   *    return 45.0 / (PI * pow(h, 6.0)) * pow(h - norm(r), 2.0) / norm(r) * r;
+   * }
+   *
+   * User-defined constants:
+   *    rho_0 := rest density (kg/m^3)
+   *    epsilon := relaxation parameter
+   *    h := scale parameter
+   *    sigma := normalization factor
+   *    d := number of dimensions
+   * */
+  particles.reserve(rho_0 * rho_0 * rho_0);
+  springs.reserve(rho_0 * rho_0 * rho_0 * 6);
+  for (float x = 0.0; x < side_length; x += side_length / rho_0) {
+      for (float y = 0.0; y < side_length; y += side_length / rho_0) {
+          for (float z = 0.0; z < side_length; z += side_length / rho_0) {
+              Vector3Df *p = new Vector3Df(x, y, z);
+              particles.emplace_back(p);
+          }
+      }
+  }
+  // Spring forces
 }
 
 void Cloth::simulate(double frames_per_sec, double simulation_steps, ClothParameters *cp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
-  double mass = width * height * cp->density / num_width_points / num_height_points;
-  double delta_t = 1.0f / frames_per_sec / simulation_steps;
+    // apply forces to update position
 
-  // TODO (Part 2): Compute total force acting on each point mass.
+    for (auto *p_i: particles) {
+        float rho_i = 0.0;
+        for (auto *p_j: particles) {
+            rho_i += p_j->mass * W(p_i->position - p_j->position);
 
-
-  // TODO (Part 2): Use Verlet integration to compute new point mass positions
-
-
-  // TODO (Part 4): Handle self-collisions.
-
-
-  // TODO (Part 3): Handle collisions with other primitives.
-
-
-  // TODO (Part 2): Constrain the changes to be such that the spring does not change
-  // in length more than 10% per timestep [Provot 1995].
-
+        }
+        float C_i = rho_i / rho_0 - 1.0;
+        float grad_sum = 0.0;
+        for (auto *p_k: particles) {
+            Vector3Df grad_pk_Ci = Vector3DF();
+            if (p_k == p_i) {
+                for (auto *p_j: particles) {
+                    grad_pk_Ci += gradW(p_i->position - p_j->position);
+                }
+            } else {
+                grad_pk_Ci = -gradW(p_i->position - p_j->position);
+            }
+            grad_pk_Ci /= rho_0;
+            grad_sum += pow(norm(grad_pk_Ci), 2.0);
+        }
+        float lambda_i = -C_i / (grad_sum + epsilon);
+        // delta p_i calc
+    }
 }
 
 void Cloth::build_spatial_map() {
