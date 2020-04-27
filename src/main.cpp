@@ -200,14 +200,14 @@ bool loadObjectsFromFile(string filename, Water *water, WaterParameters *wp, vec
         }
 
         auto it_depth = object.find("depth");
-        if (it_height != object.end()) {
+        if (it_depth != object.end()) {
           depth = *it_depth;
         } else {
           incompleteObjectError("water", "depth");
         }
         
         auto it_density = object.find("density");
-        if (it_height != object.end()) {
+        if (it_density != object.end()) {
           density = *it_density;
         } else {
           incompleteObjectError("water", "density");
