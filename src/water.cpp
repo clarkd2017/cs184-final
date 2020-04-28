@@ -60,14 +60,6 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(pow(h, 2.0) - pow(delta_q, 2.0), 3.0);
     float n = 4.0;
 
-    // reset certain PointMass attributes
-    for (auto &p: point_masses) {
-        p.predicted_position *= 0.0;
-        p.neighbors.clear();
-        p.lambda = 0.0;
-        p.delta_p *= 0.0;
-    }
-
     // apply forces to update position
     double delta_t = 1.0f / frames_per_sec / simulation_steps;
     Vector3D f_ext = Vector3D();
@@ -81,57 +73,58 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
 
     // TODO: find neighboring particles + populate each PM's neighbors attribute
 
-    for (unsigned it = 0; it < solver_iters; it++) {
+    // should put the below into this loop but moving it out for now
+    //for (unsigned it = 0; it < solver_iters; it++) {
+    //}
+
+    for (auto &p_i: point_masses) {
         // calculate lambda_i
-        // TODO: this loop is crazy slow
-        for (auto &p_i: point_masses) {
-            float rho_i = 0.0;
-            for (auto *p_j: p_i.neighbors) {
-                rho_i += particle_mass * p_i.W(*p_j, h);
-            }
-            float C_i = rho_i / rho_0 - 1.0;
-            float grad_sum = 0.0;
-            // TODO: not 100% sure about this loop
-            for (auto &p_k: point_masses) {
-                Vector3D grad_pk_Ci = Vector3D();
-                if (&p_k == &p_i) {
-                    for (auto *p_j: p_i.neighbors) {
-                        grad_pk_Ci += p_i.gradW(*p_j, h);
-                    }
-                } else {
-                    grad_pk_Ci = -1.0 * p_i.gradW(p_k, h);
+        float rho_i = 0.0;
+        for (auto &p_j: p_i.neighbors) {
+            rho_i += particle_mass * p_i.W(p_j, h);
+        }
+        float C_i = rho_i / rho_0 - 1.0;
+
+        float grad_sum = 0.0;
+        for (auto &p_k: p_i.neighbors) {
+            Vector3D grad_pk_Ci = Vector3D();
+            if (&p_k == &p_i) {
+                for (auto &p_j: p_i.neighbors) {
+                    grad_pk_Ci += p_i.gradW(p_j, h);
                 }
-                grad_pk_Ci /= rho_0;
-                grad_sum += pow(grad_pk_Ci.norm(), 2.0);
+            } else {
+                grad_pk_Ci = -1.0 * p_i.gradW(p_k, h);
             }
-            p_i.lambda = -C_i / (grad_sum + epsilon);
+            grad_pk_Ci /= rho_0;
+            grad_sum += pow(grad_pk_Ci.norm(), 2.0);
         }
-        for (auto &p_i: point_masses) {
-            // calculate s_corr (artificial pressure term) and delta_p_i
-            for (auto *p_j: p_i.neighbors) {
-                float s_corr = -k * pow(p_i.W(*p_j, h) / Wdq, n);
-                p_i.delta_p += (p_i.lambda + p_j->lambda + s_corr) * p_i.gradW(*p_j, h);
-            }
-            p_i.delta_p /= rho_0;
+        p_i.lambda = -1.0 * C_i / (grad_sum + epsilon);
+    }
 
-            // collide with other particles
-            for (auto *p_j: p_i.neighbors) {
-                p_i.collide(*p_j);
-            }
-
-            // collide with objects (planes)
-            for (auto obj: *collision_objects) {
-                obj->collide(p_i);
-            }
+    for (auto &p_i: point_masses) {
+        // calculate s_corr (artificial pressure term) and delta_p_i
+        for (auto &p_j: p_i.neighbors) {
+            float s_corr = -k * pow(p_i.W(p_j, h) / Wdq, n);
+            p_i.delta_p += (p_i.lambda + p_j.lambda + s_corr) * p_i.gradW(p_j, h);
         }
+        p_i.delta_p /= rho_0;
 
-        // update predicted positions
-        for (auto &p_i: point_masses) {
-            p_i.predicted_position += p_i.delta_p;
+        // collide with other particles (may not be necessary)
+        /*for (auto &p_j: p_i.neighbors) {
+            p_i.collide(p_j);
+        }*/
+
+        // collide with objects (planes)
+        for (auto obj: *collision_objects) {
+            obj->collide(p_i);
         }
     }
 
     for (auto &p_i: point_masses) {
+        // update predicted positions
+        p_i.predicted_position += p_i.delta_p;
+
+        // NOTE: if solver_iters put back in, then the below should be in a separate loop
         // update velocity
         p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
 
@@ -142,6 +135,12 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         // update position
         p_i.last_position =  p_i.position;
         p_i.position = p_i.predicted_position;
+
+        // reset certain PointMass attributes
+        p_i.predicted_position *= 0.0;
+        p_i.neighbors.clear();
+        p_i.lambda = 0.0;
+        p_i.delta_p *= 0.0;
     }
 }
 

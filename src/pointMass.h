@@ -35,13 +35,14 @@ struct PointMass {
   // FINAL PROJECT: NEW STUFF
   Vector3D predicted_position;
   Vector3D velocity;
-  std::vector<PointMass *> neighbors;
+  std::vector<PointMass> neighbors;
   float lambda;
   Vector3D delta_p;
   float radius = 0.01; // (constant) particle radius
 
-  void collide(PointMass p) {
-      // not 100% sure that this works
+  // not 100% sure that this works or is necessary
+  /*void collide(PointMass p) {
+
       if ((p.predicted_position - predicted_position).norm() <= 2 * radius) {
           Vector3D temp_p = predicted_position;
           Vector3D temp_v = velocity;
@@ -50,7 +51,7 @@ struct PointMass {
           p.predicted_position = temp_p;
           p.velocity = temp_v;
       }
-  }
+  }*/
 
   float W(PointMass p, float h) {
       return 315.0 / (64.0 * PI * pow(h, 9.0)) * pow(pow(h, 2.0) - pow((position - p.position).norm(), 2.0), 3.0);
