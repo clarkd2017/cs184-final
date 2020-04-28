@@ -39,6 +39,7 @@ struct PointMass {
   float lambda;
   Vector3D delta_p;
   float radius = 0.01; // (constant) particle radius
+  float delta_t;
 
   // not 100% sure that this works or is necessary
   /*void collide(PointMass p) {
