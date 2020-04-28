@@ -42,4 +42,5 @@ void main() {
   // GPU's triangle rasterizer takes in.
     gl_PointSize = 10.0;
   gl_Position = u_view_projection * u_model * in_position;
+  gl_PointSize = 10.0;
 }
