@@ -26,7 +26,8 @@ void Water::buildVolume() {
   double x_interval = 0.02;
   double y_interval = 0.02;
   double z_interval = 0.02;
-  /*int num_height_points = floor(height / y_interval);
+  //int num_height_points = floor(height / y_interval);
+  int num_height_points = 1;
   int num_width_points = floor(width / x_interval);
   int num_depth_points = floor(depth / z_interval);
   double tot_mass = density * (num_width_points * num_height_points * num_depth_points) * 0.000008;
@@ -36,15 +37,15 @@ void Water::buildVolume() {
     for (int w = 0; w < num_width_points; w++){
       for (int d = 0; d < num_depth_points; d++){
         double x = x_interval * w;
-        double y = y_interval * h;
+        // double y = y_interval * h;
+        double y = y_interval * h + (((float) rand() / RAND_MAX) - 0.5) / 10.0 + 0.2;
         double z = z_interval * d;
 
         PointMass pm = PointMass(Vector3D(x, y, z), false);
         point_masses.emplace_back(pm);
       }
     }
-  }*/
-  point_masses.emplace_back(PointMass(Vector3D(0.5, 0.2, 0.5), false));
+  }
 }
 
 void Water::simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
@@ -127,7 +128,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         p_i.predicted_position += p_i.delta_p;
         // NOTE: if solver_iters put back in, then the below should be in a separate loop
         // update velocity
-        p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
+        //p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
 
         // TODO: vorticity confinement
 
