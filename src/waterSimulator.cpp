@@ -324,7 +324,6 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
   // Commented out: the wireframe shader does not have this attribute
   //shader.uploadAttrib("in_normal", normals);
     
-  glad_glPointSize(64.0);
   shader.drawArray(GL_POINTS, 0, water->point_masses.size());
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
