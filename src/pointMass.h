@@ -35,7 +35,7 @@ struct PointMass {
   // FINAL PROJECT: NEW STUFF
   Vector3D predicted_position;
   Vector3D velocity;
-  std::vector<PointMass> neighbors;
+  std::vector<PointMass *> neighbors;
   float lambda;
   Vector3D delta_p;
   float radius = 0.01; // (constant) particle radius
@@ -55,12 +55,26 @@ struct PointMass {
   }*/
 
   float W(PointMass p, float h) {
-      return 315.0 / (64.0 * PI * pow(h, 9.0)) * pow(pow(h, 2.0) - pow((position - p.position).norm(), 2.0), 3.0);
+      float r = (position - p.position).norm();
+      if (r <= h) {
+          return 315.0 / (64.0 * PI * pow(h, 9.0)) * pow(h * h - r * r, 3.0);
+      }
+      return 0.0;
   }
 
-  Vector3D gradW(PointMass p, float h) {
-      float n = (position - p.position).norm();
-      return 45.0 / (PI * pow(h, 6.0)) * pow(h - n, 2.0) / n * (position - p.position);
+  /*Vector3D gradW(PointMass p, float h) {
+      float r = (position - p.position).norm();
+      if (r <= h) {
+          return 45.0 / (PI * pow(h, 6.0)) * pow(h - r, 2.0) / r * (position - p.position);
+      }
+      return Vector3D();
+  }*/
+  float gradW(PointMass p, float h) {
+      float r = (position - p.position).norm();
+      if (r <= h) {
+          return 45.0 / (PI * pow(h, 6.0)) * pow(h - r, 2.0);
+      }
+      return 0.0;
   }
 };
 
