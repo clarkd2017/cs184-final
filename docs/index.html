@@ -24,7 +24,7 @@
 <body>
 
 <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2020</h1>
-<h1 align="middle">Final Project: Rain Simulation</h1>
+<h1 align="middle">Final Project: Position-Based Fluid Simulation</h1>
 <h2 align="middle">Jason Chang, Kristine Chen, and Dakota Clark</h2>
 
 <br><br>
@@ -32,63 +32,74 @@
 <div>
 
 <h2 align="middle">Overview</h2>
-<p>This project focuses on using particle simulation to create a realistic simulation of rain interacting with a simple flat surface. To do so, we will model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting a surface. As a result, the simulation will also model the effects of rain, such as ripples and the formation of puddles.</p>
+<p>This project focuses on using particle simulation to create a realistic simulation of water interacting with a simple flat surface. To do so, we will model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting a surface. As a result, the simulation will also model the effects of rain, such as ripples and the formation of puddles.</p>
 
 <h2 align="middle">Problem Description</h2>
-<p> We will extend the Project 4 code to create our rain simulation. We will first define a class for modeling a water particle, which will maintain properties like previous and current positions, particle size, and mass. We will then model the forces that will act on these particles, particularly the tensile forces between water particles. We will model the necessary physical constraints on our system based on Muller and Macklin’s conditions to maintain properties such as the shape and density of water droplets, and realistically simulate collision interactions. Finally, to model rain’s reflective and refractive properties, our simulation will model each particle as a lens. Thus, each particle will be assigned a spectral value that is more dependent on the directionality of environment radiances. </p>
+<p> We will extend the Project 4 code to create our fluid simulation. We will first define a class for modeling a water particle, which will maintain properties like previous and current positions, particle size, and mass. We will then model the forces that will act on these particles, particularly the tensile forces between water particles. We will model the necessary physical constraints on our system based on Muller and Macklin’s conditions to maintain properties such as the shape and density of water droplets, and realistically simulate collision interactions. As a reach goal, we will have our project render particles that model water's reflective and refractive properties. </p>
 
 <h2 align="middle">Goals and Deliverables</h2>
 
 <ul>
-<li> Demo: We will be running a non-interactive simulation of rain droplets falling into a puddle lying on a plane.</li>
+<li> Demo: We will be running a non-interactive simulation of water particles falling onto a surface plane.</li>
 <li> Measure of quality: We will judge the quality of our simulation by the speed of running it, and how accurately our model simulates the interaction of fluid particles. Specifically, we will optimize our implementation to realistically simulate fluids without apparent lag or drop in framerate, and obeys the physical constraints we sought to impose on the simulation.</li>
-<li> Plan: For our project to be successful, it must realistically simulate at least one raindrop falling into a shallow puddle of water lying on a plane. From the initial time step in which the drop falls from a fixed point above the plane to an appropriate time after the drop hits the plane, the simulation should obey the physics that fluids would be constrained to in the real world. This includes the apparent realism of the motion of particles and shaders we applied to our model.
+<li> Plan: For our project to be successful, it must realistically simulate at least one water particle falling on a plane. From the initial time step in which the drop falls from a fixed point above the plane to an appropriate time after the drop hits the plane, the simulation should obey the physics that fluids would be constrained to in the real world. This includes the apparent realism of the motion of particles and shaders we applied to our model.
 </li>
-<li> Aspirational Plan: We would like to implement fluid-solid object collision if we get ahead of schedule. Interactions between fluids and solids follow different physical constraints than fluids between themselves, so we believe that it could prove to be an interesting stretch goal.</li>
+<li> Aspirational Plan: We would like to be able to render the appearance of water realistically, using its reflective and refractive properties. We would also like to implement fluid-solid object collision if we get ahead of schedule. Interactions between fluids and solids follow different physical constraints than fluids between themselves, so we believe that it could prove to be an interesting stretch goal.</li>
 </ul>
 
-<h2 align="middle">Schedule</h2>
+<h2 align="middle">Progress</h2>
+
+<div align="center">
+    <img align="middle" src="images/particles&plane.png" width="480px" />
+</div>
+
+<p>Building off of the code from Project 4, we created a Water class to model water using a cube volume. We implemented the <code>Water::buildVolume()</code> method to create a cube of point masses, each representing a water particle, and calculate each particle’s mass.  For the simulator application, we implemented WaterSimulator, which draws each of the point masses in the water cube to the screen using <code>GL_POINTS</code> with the shader. We updated main accordingly to use the WaterSimulator as its application and be able to read and parse Water objects from files.
+</p>
+
+<p>Some updates to <code>PointMass</code> and the <code>Water::simulate()</code> method were also necessary in order to implement our water particle simulation. For <code>PointMass</code>, the <code>velocity</code> attribute had to be changed from a function solely based on position to a dynamic attribute. We also added a <code>lambda</code> variable as the scaling factor for Newton’s method (for minimizing incompressibility) and methods to compute the SPH kernel and kernel gradient functions. Using these updates, we were able to build the <code>Water::simulate()</code> method to follow the implementation from Macklin and Müller’s paper.
+</p>
+
+<p> Our current simulation now shows water particles falling and colliding with a plane surface; however water particles do not interact with each other following tensile properties of a fluid. Our next step will be to implement an efficient algorithm for finding neighboring particles, in order to allow us to fully integrate Macklin and Müller’s simulation loop. By finding each particle’s neighbors, we can calculate the tensile forces and enforce incompressibility constraints, and particles can then influence the motion of other particles within a certain neighborhood. After implementing the nearest neighbors algorithm, our final steps to completing our fluid simulation physically is to enforce vorticity confinement and constrain viscosity, which will contribute to the realism of our simulation.
+</p>
+
+<h2 align="middle">Project Plan Updates</h2>
+<p>The biggest change in our project plan is when rendering the fluid. Previously we planned to render the particles using a ray tracer and modeling the reflective and refractive properties of each particle. However, a ray tracing model would not be fast enough for real-time rendering. Instead, for our aspirational plan we hope to implement a particle splatting algorithm that renders each particle as an ellipsoid. To implement this, we will follow the paper on particle splatting by Adams, Lenaerts, and Dutre (see Resources).
+</p>
+
+
+<h2 align="middle">Updated Schedule</h2>
 <ul>
-  <li> 4/6-4/12</li>
+  <li> 4/28-5/1</li>
   <ul>
-    <li>Finish Project Proposal </li>
+    <li> Add algorithm for finding neighboring particles and implement self-collisions</li>
   </ul>
-  <li> 4/13-4/19</li>
+  <li> 5/2-5/5</li>
   <ul>
-    <li>Project Proposal Revision</li>
-    <li> Create model for rain particles</li>
-    <ul>
-    <li>Particle class with properties</li>
-      <li> Forces involved/acting on particles</li>
+    <li> Vorticity confinement and constrain viscosity (Macklin & Müller)</li>
+    <li> Bonus: render water using a particle splatting algorithm </li>
   </ul>
-  </ul>
-  <li> 4/20-4/26</li>
+  <li> 5/5-5/7</li>
   <ul>
-    <li>Add collision detection support</li>
-    <ul>
-    <li>Model how water interacts with surface and forms puddle/ripple effects</li>
-  </ul>
-    <li> Create short webpage for milestone report (due 4/28)</li>
-    <li> Create milestone video (due 4/28)</li>
-    <li> Create presentation slides- 2-3 slide summary (due 4/28)</li>
-  </ul>
-  <li> 4/27-5/3</li>
-  <ul>
-    <li>Add shading and effects of light (reflection/refraction)</li>
-  </ul>
-  <li> 5/4-5/7</li>
-  <ul>
-    <li>Practice for final presentation on 5/7</li>
-    <li> Final project video (due 5/12)</li>
+    <li> Practice for final presentation on 5/7</li>
+    <li> Final project video (due 5/12) </li>
   </ul>
   <li> 5/8-5/12</li>
   <ul>
-    <li>Final fixes/clean-up</li>
+    <li> Final fixes/clean-up</li>
     <li> Final report webpage (due 5/12)</li>
   </ul>
-  </ul>
+</ul>
+
+<h2 align="middle">Slides & Video</h2>
+<a href="https://docs.google.com/presentation/d/1lY2wgYFPfcxfvr4OMaPa8dGAKCwelGQoaorlj-1DoD0/edit?usp=sharing">View our slides here</a>
+<br>
+<br>
+<a href="https://drive.google.com/a/berkeley.edu/file/d/1h7cHrVNUkTdAsxCb5He8fa1gzLLc2R7E/view?usp=sharing">View our video here</a>
+
+
 <h2 align="middle">Resources</h2>
 <ul>
+    <li>Adams, Bart, et al. Particle Splatting: Interactive Rendering of Particle-Based Simulation Data. Katholieke Universiteit Leuven, 2006, pp. 1–18, Particle Splatting: Interactive Rendering of Particle-Based Simulation Data.</li>
     <li>Macklin, M., & Müller, M. (2013). Position based fluids. ACM Transactions on Graphics, 32(4), 1. doi: 10.1145/2461912.2461984</li>
     <li> https://www.cs.columbia.edu/CAVE/publications/pdfs/Garg_IJCV07.pdf</li>
   <li> https://david.li/fluid/</li>
