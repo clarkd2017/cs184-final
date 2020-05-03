@@ -53,35 +53,35 @@ void Plane::render(GLShader &shader) {
     
 // attempt at open cube
     
-  MatrixXf positions(3, 27);
+  MatrixXf positions(3, 21);
     
-    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
-    positions.col(1) << -1.0f,-1.0f, 1.0f;
-    positions.col(2) <<-1.0f, 1.0f, 1.0f; // triangle 1 : end
-    positions.col(3) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
+//    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
+//    positions.col(1) << -1.0f,-1.0f, 1.0f;
+//    positions.col(2) <<-1.0f, 1.0f, 1.0f; // triangle 1 : end
+    positions.col(0) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
+    positions.col(1) <<-1.0f,-1.0f,-1.0f;
+    positions.col(2) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
+    positions.col(3) <<1.0f,-1.0f, 1.0f;
     positions.col(4) <<-1.0f,-1.0f,-1.0f;
-    positions.col(5) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
-    positions.col(6) <<1.0f,-1.0f, 1.0f;
-    positions.col(7) <<-1.0f,-1.0f,-1.0f;
-    positions.col(8) <<1.0f,-1.0f,-1.0f;
-    positions.col(9) <<1.0f, 1.0f,-1.0f;
-    positions.col(10) <<1.0f,-1.0f,-1.0f;
-    positions.col(11) <<-1.0f,-1.0f,-1.0f;
-    positions.col(12) <<-1.0f,-1.0f,-1.0f;
-    positions.col(13) <<-1.0f, 1.0f, 1.0f;
-    positions.col(14) <<-1.0f, 1.0f,-1.0f;
-    positions.col(15) <<1.0f,-1.0f, 1.0f;
+    positions.col(5) <<1.0f,-1.0f,-1.0f;
+    positions.col(6) <<1.0f, 1.0f,-1.0f;
+    positions.col(7) <<1.0f,-1.0f,-1.0f;
+    positions.col(8) <<-1.0f,-1.0f,-1.0f;
+    positions.col(9) <<-1.0f,-1.0f,-1.0f;
+    positions.col(10) <<-1.0f, 1.0f, 1.0f;
+    positions.col(11) <<-1.0f, 1.0f,-1.0f;
+    positions.col(12) <<1.0f,-1.0f, 1.0f;
+    positions.col(13) <<-1.0f,-1.0f, 1.0f;
+    positions.col(14) <<-1.0f,-1.0f,-1.0f;
+    positions.col(15) <<-1.0f, 1.0f, 1.0f;
     positions.col(16) <<-1.0f,-1.0f, 1.0f;
-    positions.col(17) <<-1.0f,-1.0f,-1.0f;
-    positions.col(18) <<-1.0f, 1.0f, 1.0f;
-    positions.col(19) <<-1.0f,-1.0f, 1.0f;
-    positions.col(20) <<1.0f,-1.0f, 1.0f;
-    positions.col(21) <<1.0f, 1.0f, 1.0f;
-    positions.col(22) <<1.0f,-1.0f,-1.0f;
-    positions.col(23) <<1.0f, 1.0f,-1.0f;
-    positions.col(24) <<1.0f,-1.0f,-1.0f;
-    positions.col(25) <<1.0f, 1.0f, 1.0f;
-    positions.col(26) <<1.0f,-1.0f, 1.0f;
+    positions.col(17) <<1.0f,-1.0f, 1.0f;
+    positions.col(18) <<1.0f, 1.0f, 1.0f;
+    positions.col(19) <<1.0f,-1.0f,-1.0f;
+    positions.col(20) <<1.0f, 1.0f,-1.0f;
+//    positions.col(24) <<1.0f,-1.0f,-1.0f;
+//    positions.col(25) <<1.0f, 1.0f, 1.0f;
+//    positions.col(26) <<1.0f,-1.0f, 1.0f;
 //    positions.col(27) <<1.0f, 1.0f, 1.0f;
 //    positions.col(28) <<1.0f, 1.0f,-1.0f;
 //    positions.col(29) <<-1.0f, 1.0f,-1.0f;
@@ -98,7 +98,7 @@ void Plane::render(GLShader &shader) {
     
   }
   shader.uploadAttrib("in_position", positions);
-  shader.drawArray(GL_TRIANGLE_STRIP, 0, 27);
+  shader.drawArray(GL_TRIANGLE_STRIP, 0, 21);
     
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
