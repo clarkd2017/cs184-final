@@ -72,7 +72,6 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
     // temporarily (permanently?) define some constants
-    unsigned solver_iters = 4;
     float particle_mass = 1.0;
     float rho_0 = 6378.0;
     float epsilon = 600.0;
@@ -95,10 +94,6 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     }
 
     build_spatial_map();
-
-    // should put the below into this loop but moving it out for now
-    //for (unsigned it = 0; it < solver_iters; it++) {
-    //}
 
     for (auto &p_i: point_masses) {
         // calculate lambda_i
