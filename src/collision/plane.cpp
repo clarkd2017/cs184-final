@@ -14,6 +14,8 @@ void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction)
     // check for collision with 1 plane/face of "tank", correct point mass position if necessary
     float t = dot(point - pm.last_position, normal) / dot(pm.velocity, normal);
     if (t >= 0 && t <= pm.delta_t) {
+        std::cout << normal;
+
         pm.collision = true;
         Vector3D tan_p = pm.last_position + t * pm.velocity + SURFACE_OFFSET * normal;
         pm.velocity -= 2.0 * dot(pm.velocity, normal) * normal + (1 - friction) * normal;
@@ -24,11 +26,11 @@ void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction)
 void Plane::collide(PointMass &pm) {
     // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
   
-    collideFace(pm, point, normal, friction); //bottom face
-    collideFace(pm, Vector3D(point.x+0.5, point.y+0.5, point.z), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
-    collideFace(pm, Vector3D(point.x-0.5, point.y+0.5, point.z), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
-    collideFace(pm, Vector3D(point.x, point.y+0.5, point.z+0.5), Vector3D(0.0f,0.0f,1.0f), friction); //front face
-    collideFace(pm, Vector3D(point.x, point.y+0.5, point.z-0.5), Vector3D(0.0f,0.0f,-1.0f), friction); //back face
+    collideFace(pm, point, normal, friction); //bottom face/plane
+    collideFace(pm, Vector3D(point.x*2.0f, point.y+0.5f, point.z), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
+    collideFace(pm, Vector3D(point.x*(-2.0f), point.y+0.5f, point.z), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
+    collideFace(pm, Vector3D(point.x, point.y+0.5f, point.z*2.0f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
+    collideFace(pm, Vector3D(point.x, point.y+0.5f, point.z*(-2.0f)), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
 }
 
 void Plane::render(GLShader &shader) {
