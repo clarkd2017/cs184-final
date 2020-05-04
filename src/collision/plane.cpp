@@ -14,6 +14,7 @@ void Plane::collide(PointMass &pm) {
     Vector3D displaced_point = point + pm.radius * normal;
     float t = dot(displaced_point - pm.last_position, normal) / dot(pm.velocity, normal);
     if (t >= 0 && t <= pm.delta_t) {
+        pm.collision = true;
         Vector3D tan_p = pm.last_position + t * pm.velocity + SURFACE_OFFSET * normal;
         pm.velocity -= 2.0 * dot(pm.velocity, normal) * normal + (1 - friction) * normal;
         pm.predicted_position = tan_p;

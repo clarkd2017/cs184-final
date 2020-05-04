@@ -62,6 +62,7 @@ void Water::buildVolume() {
                 double z = z_interval * d + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
 
                 PointMass *pm = new PointMass(Vector3D(x, y, z), false);
+                pm->collision = false;
                 point_masses.emplace_back(*pm);
             }
         }
@@ -75,7 +76,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     float particle_mass = 1.0;
     float rho_0 = 6378.0;
     float epsilon = 600.0;
-    float k = 0.1;
+    float k = 0.0001;
     float h = 0.1;
     float delta_q = 0.03;
     float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(h * h - delta_q * delta_q, 3.0);
@@ -125,11 +126,11 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     }
 
     for (auto &p_i: point_masses) {
-        // update predicted positions
-        p_i.predicted_position += p_i.delta_p;
-        // NOTE: if solver_iters put back in, then the below should be in a separate loop
-        // update velocity
-        p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
+        // update predicted position and velocity
+        if (!p_i.collision) {
+            p_i.predicted_position += p_i.delta_p;
+            p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
+        }
 
         // TODO: vorticity confinement
 
@@ -144,6 +145,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         p_i.neighbors.clear();
         p_i.lambda = 0.0;
         p_i.delta_p *= 0.0;
+        p_i.collision = false;
     }
 }
 
