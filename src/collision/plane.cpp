@@ -76,6 +76,7 @@ void Plane::render(GLShader &shader) {
     
 // attempt at open cube
     
+
 //  MatrixXf positions(3, 27);
 //    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
 //    positions.col(1) << -1.0f,-1.0f, 1.0f;
@@ -104,7 +105,6 @@ void Plane::render(GLShader &shader) {
 //    positions.col(24) <<1.0f,-1.0f,-1.0f;
 //    positions.col(25) <<1.0f, 1.0f, 1.0f;
 //    positions.col(26) <<1.0f,-1.0f, 1.0f;
-    
 //    positions.col(27) <<1.0f, 1.0f, 1.0f;
 //    positions.col(28) <<1.0f, 1.0f,-1.0f;
 //    positions.col(29) <<-1.0f, 1.0f,-1.0f;
@@ -119,8 +119,10 @@ void Plane::render(GLShader &shader) {
 //    shader.setUniform("u_color", color);
 //  }
     
+
 //  shader.uploadAttrib("in_position", positions);
 //  shader.drawArray(GL_TRIANGLE_STRIP, 0, 27);
+
     
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
