@@ -77,7 +77,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     float rho_0 = 6378.0;
     float epsilon = 600.0;
     float k = 0.0001;
-    float h = 0.1;
+    float h = 0.08;
     float delta_q = 0.03;
     float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(h * h - delta_q * delta_q, 3.0);
     float n = 4.0;
