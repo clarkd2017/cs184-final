@@ -13,6 +13,8 @@
 #include "camera.h"
 #include "water.h"
 #include "collision/collisionObject.h"
+#include "collision/sphere.h"
+
 
 using namespace nanogui;
 
@@ -71,6 +73,7 @@ private:
   Water *water;
   WaterParameters *wp;
   vector<CollisionObject *> *collision_objects;
+  vector<Sphere> spheres;
 
   // OpenGL attributes
 

@@ -13,6 +13,7 @@
 #include <nanogui/nanogui.h>
 
 #include "leak_fix.h"
+#include <vector> 
 
 #include "camera.h"
 #include "water.h"
@@ -239,7 +240,8 @@ void WaterSimulator::drawContents() {
     drawWireframe(shader);
     break;
   case NORMALS:
-//    drawNormals(shader);
+   //drawNormals(shader);
+    drawWireframe(shader);
     break;
   case PHONG:
   
@@ -268,6 +270,10 @@ void WaterSimulator::drawContents() {
 
   for (CollisionObject *co : *collision_objects) {
     co->render(shader);
+  }
+  
+  for (int i = 0; i < spheres.size(); i++) {
+    spheres[i].render(shader);
   }
 }
 
@@ -315,6 +321,16 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
 
 //    normals.col(i) << p_n.x, p_n.y, p_n.z, 0.0;
     //normals.col(si + 1) << nb.x, nb.y, nb.z, 0.0;
+
+
+      Sphere s = Sphere(p_pos, 0.01, 0.3, 4, 4);
+      if (spheres.size()<= i){
+        spheres.emplace_back(s);
+      } else {
+        spheres[i] = s;
+      }
+
+
 
   }
 
@@ -779,15 +795,15 @@ void WaterSimulator::initGUI(Screen *screen) {
 
   // Appearance
 
-//  {
-//
-//
-//    ComboBox *cb = new ComboBox(window, shaders_combobox_names);
-//    cb->setFontSize(14);
-//    cb->setCallback(
-//        [this, screen](int idx) { active_shader_idx = idx; });
-//    cb->setSelectedIndex(active_shader_idx);
-//  }
+ {
+
+
+   ComboBox *cb = new ComboBox(window, shaders_combobox_names);
+   cb->setFontSize(14);
+   cb->setCallback(
+       [this, screen](int idx) { active_shader_idx = idx; });
+   cb->setSelectedIndex(active_shader_idx);
+ }
 
   // Shader Parameters
 
