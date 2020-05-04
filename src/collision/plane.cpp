@@ -10,7 +10,8 @@ using namespace CGL;
 
 #define SURFACE_OFFSET 0.0001
 
-void collideFaces(PointMass &pm, Vector3D point, Vector3D normal, float friction) {
+void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction) {
+    // check for collision with 1 plane/face of "tank", correct point mass position if necessary
     Vector3D dist = pm.position - point;
     if ((dot(pm.position-point, normal) < 0.0 && !(dot(pm.last_position - point, normal) < 0.0)) || (dot(pm.position - point, normal) > 0.0 && !(dot(pm.last_position-point, normal) > 0.0))) {
         // point mass collides
@@ -23,18 +24,13 @@ void collideFaces(PointMass &pm, Vector3D point, Vector3D normal, float friction
 }
 
 void Plane::collide(PointMass &pm) {
-  // TODO (Part 3): Handle collisions with planes.
-    
-  // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
+    // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
   
-    collideFaces(pm, point, normal, friction); //bottom face
-    collideFaces(pm, point, normal, friction); //right plane
-    collideFaces(pm, point, normal, friction); //left plane
-    collideFaces(pm, point, normal, friction); //front face
-    collideFaces(pm, point, normal, friction); //back face
-
-
-  
+    collideFace(pm, point, normal, friction); //bottom face
+    collideFace(pm, Vector3D(point.x+0.5, point.y+0.5, point.z), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
+    collideFace(pm, Vector3D(point.x-0.5, point.y+0.5, point.z), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
+    collideFace(pm, Vector3D(point.x, point.y+0.5, point.z+0.5), Vector3D(0.0f,0.0f,1.0f), friction); //front face
+    collideFace(pm, Vector3D(point.x, point.y+0.5, point.z-0.5), Vector3D(0.0f,0.0f,-1.0f), friction); //back face
 }
 
 
@@ -57,7 +53,7 @@ void Plane::render(GLShader &shader) {
   positions.col(1) << sPoint + 1 * (sCross - sParallel);
   positions.col(2) << sPoint + 1 * (-sCross + sParallel);
   positions.col(3) << sPoint + 1 * (-sCross - sParallel);
-    std::cout << positions;
+//    std::cout << positions;
     
   normals.col(0) << sNormal;
   normals.col(1) << sNormal;

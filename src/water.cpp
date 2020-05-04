@@ -44,9 +44,6 @@ void Water::buildVolume() {
       }
     }
   }
-
-
-
 }
 
 void Water::simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
@@ -65,8 +62,13 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
 
 
   // TODO (Part 3): Handle collisions with other primitives.
-
-
+  //  for every PointMass, try to collide with every possible CollisionObject
+  for (PointMass &p : point_masses) {
+    for (CollisionObject *co : *collision_objects) {
+      co->collide(p);
+    }
+  }
+    
   // TODO (Part 2): Constrain the changes to be such that the spring does not change
   // in length more than 10% per timestep [Provot 1995].
 
