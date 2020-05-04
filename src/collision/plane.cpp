@@ -27,10 +27,11 @@ void Plane::collide(PointMass &pm) {
     // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
   
     collideFace(pm, point, normal, friction); //bottom face/plane
-    collideFace(pm, Vector3D(point.x*2.0f, point.y+0.5f, point.z), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
-    collideFace(pm, Vector3D(point.x*(-2.0f), point.y+0.5f, point.z), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
-    collideFace(pm, Vector3D(point.x, point.y+0.5f, point.z*2.0f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
-    collideFace(pm, Vector3D(point.x, point.y+0.5f, point.z*(-2.0f)), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
+    collideFace(pm, point + Vector3D(-0.5f, 0.0f, 0.0f), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
+    collideFace(pm, point + Vector3D(1.5f, 0.0f, 0.0f), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
+    collideFace(pm, point + Vector3D(0.0f, 0.0f, -0.5f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
+    collideFace(pm, point + Vector3D(0.0f, 0.0f, 1.5f), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
+    collideFace(pm, point + Vector3D(0.0f, 3.0f, 0.0f), -normal, friction);
 }
 
 void Plane::render(GLShader &shader) {
