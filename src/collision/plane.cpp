@@ -12,14 +12,11 @@ using namespace CGL;
 
 void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction) {
     // check for collision with 1 plane/face of "tank", correct point mass position if necessary
-    Vector3D dist = pm.position - point;
-    if ((dot(pm.position-point, normal) < 0.0 && !(dot(pm.last_position - point, normal) < 0.0)) || (dot(pm.position - point, normal) > 0.0 && !(dot(pm.last_position-point, normal) > 0.0))) {
-        // point mass collides
-        Vector3D intersect = pm.position - (dot(dist, normal) - SURFACE_OFFSET) * normal;
-        
-        Vector3D correction = (intersect - pm.last_position);
-
-        pm.position = pm.last_position  + (correction * (1.0 - friction));
+    float t = dot(point - pm.last_position, normal) / dot(pm.velocity, normal);
+    if (t >= 0 && t <= pm.delta_t) {
+        Vector3D tan_p = pm.last_position + t * pm.velocity + SURFACE_OFFSET * normal;
+        pm.velocity -= 2.0 * dot(pm.velocity, normal) * normal + (1 - friction) * normal;
+        pm.predicted_position = tan_p;
     }
 }
 
@@ -32,8 +29,6 @@ void Plane::collide(PointMass &pm) {
     collideFace(pm, Vector3D(point.x, point.y+0.5, point.z+0.5), Vector3D(0.0f,0.0f,1.0f), friction); //front face
     collideFace(pm, Vector3D(point.x, point.y+0.5, point.z-0.5), Vector3D(0.0f,0.0f,-1.0f), friction); //back face
 }
-
-
 
 void Plane::render(GLShader &shader) {
   
@@ -72,49 +67,38 @@ void Plane::render(GLShader &shader) {
     
 // attempt at open cube
     
-//  MatrixXf positions(3, 27);
+//  MatrixXf positions(3, 21);
+    
 //    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
 //    positions.col(1) << -1.0f,-1.0f, 1.0f;
 //    positions.col(2) <<-1.0f, 1.0f, 1.0f; // triangle 1 : end
-//    positions.col(3) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
+    
+//    positions.col(0) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
+//    positions.col(1) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(2) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
+//    positions.col(3) <<1.0f,-1.0f, 1.0f;
 //    positions.col(4) <<-1.0f,-1.0f,-1.0f;
-//    positions.col(5) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
-//    positions.col(6) <<1.0f,-1.0f, 1.0f;
-//    positions.col(7) <<-1.0f,-1.0f,-1.0f;
-//    positions.col(8) <<1.0f,-1.0f,-1.0f;
-//    positions.col(9) <<1.0f, 1.0f,-1.0f;
-//    positions.col(10) <<1.0f,-1.0f,-1.0f;
-//    positions.col(11) <<-1.0f,-1.0f,-1.0f;
-//    positions.col(12) <<-1.0f,-1.0f,-1.0f;
-//    positions.col(13) <<-1.0f, 1.0f, 1.0f;
-//    positions.col(14) <<-1.0f, 1.0f,-1.0f;
-//    positions.col(15) <<1.0f,-1.0f, 1.0f;
+//    positions.col(5) <<1.0f,-1.0f,-1.0f;
+//    positions.col(6) <<1.0f, 1.0f,-1.0f;
+//    positions.col(7) <<1.0f,-1.0f,-1.0f;
+//    positions.col(8) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(9) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(10) <<-1.0f, 1.0f, 1.0f;
+//    positions.col(11) <<-1.0f, 1.0f,-1.0f;
+//    positions.col(12) <<1.0f,-1.0f, 1.0f;
+//    positions.col(13) <<-1.0f,-1.0f, 1.0f;
+//    positions.col(14) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(15) <<-1.0f, 1.0f, 1.0f;
 //    positions.col(16) <<-1.0f,-1.0f, 1.0f;
-//    positions.col(17) <<-1.0f,-1.0f,-1.0f;
-//    positions.col(18) <<-1.0f, 1.0f, 1.0f;
-//    positions.col(19) <<-1.0f,-1.0f, 1.0f;
-//    positions.col(20) <<1.0f,-1.0f, 1.0f;
-//    positions.col(21) <<1.0f, 1.0f, 1.0f;
-//    positions.col(22) <<1.0f,-1.0f,-1.0f;
-//    positions.col(23) <<1.0f, 1.0f,-1.0f;
+//    positions.col(17) <<1.0f,-1.0f, 1.0f;
+//    positions.col(18) <<1.0f, 1.0f, 1.0f;
+//    positions.col(19) <<1.0f,-1.0f,-1.0f;
+//    positions.col(20) <<1.0f, 1.0f,-1.0f;
+    
 //    positions.col(24) <<1.0f,-1.0f,-1.0f;
 //    positions.col(25) <<1.0f, 1.0f, 1.0f;
 //    positions.col(26) <<1.0f,-1.0f, 1.0f;
-    
-//    positions.col(27) <<1.0f, 1.0f, 1.0f;
-//    positions.col(28) <<1.0f, 1.0f,-1.0f;
-//    positions.col(29) <<-1.0f, 1.0f,-1.0f;
-//    positions.col(30) <<1.0f, 1.0f, 1.0f;
-//    positions.col(31) <<-1.0f, 1.0f,-1.0f;
-//    positions.col(32) <<-1.0f, 1.0f, 1.0f;
-//    positions.col(27) <<1.0f, 1.0f, 1.0f;
-//    positions.col(28) <<-1.0f, 1.0f, 1.0f;
-//    positions.col(29) <<1.0f,-1.0f, 1.0;
-    
-//  if (shader.uniform("u_color", false) != -1) {
-//    shader.setUniform("u_color", color);
-//  }
-    
+
 //  shader.uploadAttrib("in_position", positions);
 //  shader.drawArray(GL_TRIANGLE_STRIP, 0, 27);
     
