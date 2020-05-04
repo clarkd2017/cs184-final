@@ -10,74 +10,101 @@ using namespace CGL;
 
 #define SURFACE_OFFSET 0.0001
 
+void collideFaces(PointMass &pm, Vector3D point, Vector3D normal, float friction) {
+    Vector3D dist = pm.position - point;
+    if ((dot(pm.position-point, normal) < 0.0 && !(dot(pm.last_position - point, normal) < 0.0)) || (dot(pm.position - point, normal) > 0.0 && !(dot(pm.last_position-point, normal) > 0.0))) {
+        // point mass collides
+        Vector3D intersect = pm.position - (dot(dist, normal) - SURFACE_OFFSET) * normal;
+        
+        Vector3D correction = (intersect - pm.last_position);
+
+        pm.position = pm.last_position  + (correction * (1.0 - friction));
+    }
+}
+
 void Plane::collide(PointMass &pm) {
   // TODO (Part 3): Handle collisions with planes.
+    
+  // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
+  
+    collideFaces(pm, point, normal, friction); //bottom face
+    collideFaces(pm, point, normal, friction); //right plane
+    collideFaces(pm, point, normal, friction); //left plane
+    collideFaces(pm, point, normal, friction); //front face
+    collideFaces(pm, point, normal, friction); //back face
 
+
+  
 }
+
+
 
 void Plane::render(GLShader &shader) {
   
-  nanogui::Color color(0.5f, 0.5f, 0.7f, 1.0f);
+  nanogui::Color color(0.6f, 0.5f, 0.7f, 1.0f);
 
-//  Vector3f sPoint(point.x, point.y, point.z);
-//  Vector3f sNormal(normal.x, normal.y, normal.z);
-//  Vector3f sParallel(normal.y - normal.z, normal.z - normal.x,
-//                     normal.x - normal.y);
-//  sParallel.normalize();
-//  Vector3f sCross = sNormal.cross(sParallel);
-//
-//  MatrixXf positions(3, 4);
-//  MatrixXf normals(3, 4);
-//
-//  positions.col(0) << sPoint + 2 * (sCross + sParallel);
-//  positions.col(1) << sPoint + 2 * (sCross - sParallel);
-//  positions.col(2) << sPoint + 2 * (-sCross + sParallel);
-//  positions.col(3) << sPoint + 2 * (-sCross - sParallel);
-//
-//  normals.col(0) << sNormal;
-//  normals.col(1) << sNormal;
-//  normals.col(2) << sNormal;
-//  normals.col(3) << sNormal;
-//
-//  if (shader.uniform("u_color", false) != -1) {
-//    shader.setUniform("u_color", color);
-//  }
-//  shader.uploadAttrib("in_position", positions);
-//  if (shader.attrib("in_normal", false) != -1) {
-//    shader.uploadAttrib("in_normal", normals);
-//  }
+  Vector3f sPoint(point.x, point.y, point.z);
+  Vector3f sNormal(normal.x, normal.y, normal.z);
+  Vector3f sParallel(normal.y - normal.z, normal.z - normal.x,
+                     normal.x - normal.y);
+  sParallel.normalize();
+  Vector3f sCross = sNormal.cross(sParallel);
+
+  MatrixXf positions(3, 4);
+  MatrixXf normals(3, 4);
+
+  positions.col(0) << sPoint + 1 * (sCross + sParallel);
+  positions.col(1) << sPoint + 1 * (sCross - sParallel);
+  positions.col(2) << sPoint + 1 * (-sCross + sParallel);
+  positions.col(3) << sPoint + 1 * (-sCross - sParallel);
+    std::cout << positions;
+    
+  normals.col(0) << sNormal;
+  normals.col(1) << sNormal;
+  normals.col(2) << sNormal;
+  normals.col(3) << sNormal;
+
+  if (shader.uniform("u_color", false) != -1) {
+    shader.setUniform("u_color", color);
+  }
+  shader.uploadAttrib("in_position", positions);
+  if (shader.attrib("in_normal", false) != -1) {
+    shader.uploadAttrib("in_normal", normals);
+  }
+  shader.drawArray(GL_TRIANGLE_STRIP, 0, 4);
+
     
 // attempt at open cube
     
-  MatrixXf positions(3, 27);
+//  MatrixXf positions(3, 27);
+//    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
+//    positions.col(1) << -1.0f,-1.0f, 1.0f;
+//    positions.col(2) <<-1.0f, 1.0f, 1.0f; // triangle 1 : end
+//    positions.col(3) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
+//    positions.col(4) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(5) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
+//    positions.col(6) <<1.0f,-1.0f, 1.0f;
+//    positions.col(7) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(8) <<1.0f,-1.0f,-1.0f;
+//    positions.col(9) <<1.0f, 1.0f,-1.0f;
+//    positions.col(10) <<1.0f,-1.0f,-1.0f;
+//    positions.col(11) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(12) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(13) <<-1.0f, 1.0f, 1.0f;
+//    positions.col(14) <<-1.0f, 1.0f,-1.0f;
+//    positions.col(15) <<1.0f,-1.0f, 1.0f;
+//    positions.col(16) <<-1.0f,-1.0f, 1.0f;
+//    positions.col(17) <<-1.0f,-1.0f,-1.0f;
+//    positions.col(18) <<-1.0f, 1.0f, 1.0f;
+//    positions.col(19) <<-1.0f,-1.0f, 1.0f;
+//    positions.col(20) <<1.0f,-1.0f, 1.0f;
+//    positions.col(21) <<1.0f, 1.0f, 1.0f;
+//    positions.col(22) <<1.0f,-1.0f,-1.0f;
+//    positions.col(23) <<1.0f, 1.0f,-1.0f;
+//    positions.col(24) <<1.0f,-1.0f,-1.0f;
+//    positions.col(25) <<1.0f, 1.0f, 1.0f;
+//    positions.col(26) <<1.0f,-1.0f, 1.0f;
     
-    positions.col(0) << -1.0f,-1.0f,-1.0f; // triangle 1 : begin
-    positions.col(1) << -1.0f,-1.0f, 1.0f;
-    positions.col(2) <<-1.0f, 1.0f, 1.0f; // triangle 1 : end
-    positions.col(3) <<1.0f, 1.0f,-1.0f; // triangle 2 : begin
-    positions.col(4) <<-1.0f,-1.0f,-1.0f;
-    positions.col(5) <<-1.0f, 1.0f,-1.0f; // triangle 2 : end
-    positions.col(6) <<1.0f,-1.0f, 1.0f;
-    positions.col(7) <<-1.0f,-1.0f,-1.0f;
-    positions.col(8) <<1.0f,-1.0f,-1.0f;
-    positions.col(9) <<1.0f, 1.0f,-1.0f;
-    positions.col(10) <<1.0f,-1.0f,-1.0f;
-    positions.col(11) <<-1.0f,-1.0f,-1.0f;
-    positions.col(12) <<-1.0f,-1.0f,-1.0f;
-    positions.col(13) <<-1.0f, 1.0f, 1.0f;
-    positions.col(14) <<-1.0f, 1.0f,-1.0f;
-    positions.col(15) <<1.0f,-1.0f, 1.0f;
-    positions.col(16) <<-1.0f,-1.0f, 1.0f;
-    positions.col(17) <<-1.0f,-1.0f,-1.0f;
-    positions.col(18) <<-1.0f, 1.0f, 1.0f;
-    positions.col(19) <<-1.0f,-1.0f, 1.0f;
-    positions.col(20) <<1.0f,-1.0f, 1.0f;
-    positions.col(21) <<1.0f, 1.0f, 1.0f;
-    positions.col(22) <<1.0f,-1.0f,-1.0f;
-    positions.col(23) <<1.0f, 1.0f,-1.0f;
-    positions.col(24) <<1.0f,-1.0f,-1.0f;
-    positions.col(25) <<1.0f, 1.0f, 1.0f;
-    positions.col(26) <<1.0f,-1.0f, 1.0f;
 //    positions.col(27) <<1.0f, 1.0f, 1.0f;
 //    positions.col(28) <<1.0f, 1.0f,-1.0f;
 //    positions.col(29) <<-1.0f, 1.0f,-1.0f;
@@ -88,18 +115,17 @@ void Plane::render(GLShader &shader) {
 //    positions.col(28) <<-1.0f, 1.0f, 1.0f;
 //    positions.col(29) <<1.0f,-1.0f, 1.0;
     
-
-  if (shader.uniform("u_color", false) != -1) {
-    shader.setUniform("u_color", color);
+//  if (shader.uniform("u_color", false) != -1) {
+//    shader.setUniform("u_color", color);
+//  }
     
-  }
-  shader.uploadAttrib("in_position", positions);
-  shader.drawArray(GL_TRIANGLE_STRIP, 0, 27);
+//  shader.uploadAttrib("in_position", positions);
+//  shader.drawArray(GL_TRIANGLE_STRIP, 0, 27);
     
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
-//  if (shader.attrib("in_normal", false) != -1) {
-//    shader.freeAttrib("in_normal");
-//  }
+  if (shader.attrib("in_normal", false) != -1) {
+    shader.freeAttrib("in_normal");
+  }
 #endif
 }
