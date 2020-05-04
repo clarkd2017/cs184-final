@@ -14,7 +14,7 @@ void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction)
     // check for collision with 1 plane/face of "tank", correct point mass position if necessary
     float t = dot(point - pm.last_position, normal) / dot(pm.velocity, normal);
     if (t >= 0 && t <= pm.delta_t) {
-        std::cout << normal;
+//        std::cout << normal;
 
         pm.collision = true;
         Vector3D tan_p = pm.last_position + t * pm.velocity + SURFACE_OFFSET * normal;
@@ -27,10 +27,15 @@ void Plane::collide(PointMass &pm) {
     // get points and normals for 4 other faces, collide with all faces (invisible boundaries)
   
     collideFace(pm, point, normal, friction); //bottom face/plane
-    collideFace(pm, point + Vector3D(-0.5f, 0.0f, 0.0f), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
-    collideFace(pm, point + Vector3D(1.5f, 0.0f, 0.0f), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
-    collideFace(pm, point + Vector3D(0.0f, 0.0f, -0.5f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
-    collideFace(pm, point + Vector3D(0.0f, 0.0f, 1.5f), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
+    collideFace(pm, point + Vector3D(-1.0f, 0.0f, 0.0f), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
+    collideFace(pm, point + Vector3D(1.0f, 0.0f, 0.0f), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
+    collideFace(pm, point + Vector3D(0.0f, 0.0f, -1.0f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
+    collideFace(pm, point + Vector3D(0.0f, 0.0f, 1.0f), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
+    
+//    collideFace(pm, point + Vector3D(-0.5f, 0.0f, 0.0f), Vector3D(1.0f,0.0f,0.0f), friction); //right plane
+//    collideFace(pm, point + Vector3D(1.5f, 0.0f, 0.0f), Vector3D(-1.0f,0.0f,0.0f), friction); //left plane
+//    collideFace(pm, point + Vector3D(0.0f, 0.0f, -0.5f), Vector3D(0.0f,0.0f,1.0f), friction); //front plane
+//    collideFace(pm, point + Vector3D(0.0f, 0.0f, 1.5f), Vector3D(0.0f,0.0f,-1.0f), friction); //back plane
     collideFace(pm, point + Vector3D(0.0f, 3.0f, 0.0f), -normal, friction);
 }
 
