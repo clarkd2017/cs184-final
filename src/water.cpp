@@ -23,11 +23,10 @@ Water::~Water() {
 }
 
 void Water::buildVolume() {
-  double x_interval = 0.02;
+  /*double x_interval = 0.02;
   double y_interval = 0.02;
   double z_interval = 0.02;
-  //int num_height_points = floor(height / y_interval);
-  int num_height_points = 1;
+  int num_height_points = floor(height / y_interval);
   int num_width_points = floor(width / x_interval);
   int num_depth_points = floor(depth / z_interval);
   double tot_mass = density * (num_width_points * num_height_points * num_depth_points) * 0.000008;
@@ -45,21 +44,42 @@ void Water::buildVolume() {
         point_masses.emplace_back(pm);
       }
     }
-  }
+  }*/
+    double x_interval = 0.1;
+    double y_interval = 0.1;
+    double z_interval = 0.1;
+    int num_height_points = 3;
+    int num_width_points = floor(width / x_interval);
+    int num_depth_points = floor(depth / z_interval);
+    double tot_mass = density * (num_width_points * num_height_points * num_depth_points) * 0.000008;
+    p_mass = tot_mass / (num_width_points * num_height_points * num_depth_points);
+
+    for (int h = 0; h < num_height_points; h++){
+        for (int w = 0; w < num_width_points; w++){
+            for (int d = 0; d < num_depth_points; d++){
+                double x = x_interval * w + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
+                double y = y_interval * h + (((float) rand() / RAND_MAX) - 0.5) / 10.0 + 0.2;
+                double z = z_interval * d + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
+
+                PointMass *pm = new PointMass(Vector3D(x, y, z), false);
+                pm->collision = false;
+                point_masses.emplace_back(*pm);
+            }
+        }
+    }
 }
 
 void Water::simulate(double frames_per_sec, double simulation_steps, WaterParameters *wp,
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
     // temporarily (permanently?) define some constants
-    unsigned solver_iters = 4;
     float particle_mass = 1.0;
     float rho_0 = 6378.0;
-    float epsilon = 600;
+    float epsilon = 600.0;
     float k = 0.0001;
     float h = 0.1;
     float delta_q = 0.03;
-    float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(pow(h, 2.0) - pow(delta_q, 2.0), 3.0);
+    float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(h * h - delta_q * delta_q, 3.0);
     float n = 4.0;
 
     // apply forces to update position
@@ -74,48 +94,30 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         p.delta_t = delta_t;
     }
 
-    // TODO: find neighboring particles + populate each PM's neighbors attribute
-
-    // should put the below into this loop but moving it out for now
-    //for (unsigned it = 0; it < solver_iters; it++) {
-    //}
+    build_spatial_map();
 
     for (auto &p_i: point_masses) {
         // calculate lambda_i
         float rho_i = 0.0;
-        for (auto &p_j: p_i.neighbors) {
-            rho_i += particle_mass * p_i.W(p_j, h);
+        float grad_sum = 0.0;
+        for (auto *p_j: p_i.neighbors) {
+            rho_i += particle_mass * p_i.W(*p_j, h);
+            float gradW = p_i.gradW(*p_j, h);
+            grad_sum += gradW * gradW / (rho_0 * rho_0);
         }
         float C_i = rho_i / rho_0 - 1.0;
-
-        float grad_sum = 0.0;
-        for (auto &p_k: p_i.neighbors) {
-            Vector3D grad_pk_Ci = Vector3D();
-            if (&p_k == &p_i) {
-                for (auto &p_j: p_i.neighbors) {
-                    grad_pk_Ci += p_i.gradW(p_j, h);
-                }
-            } else {
-                grad_pk_Ci = -1.0 * p_i.gradW(p_k, h);
-            }
-            grad_pk_Ci /= rho_0;
-            grad_sum += pow(grad_pk_Ci.norm(), 2.0);
-        }
         p_i.lambda = -1.0 * C_i / (grad_sum + epsilon);
     }
 
     for (auto &p_i: point_masses) {
         // calculate s_corr (artificial pressure term) and delta_p_i
-        for (auto &p_j: p_i.neighbors) {
-            float s_corr = -k * pow(p_i.W(p_j, h) / Wdq, n);
-            p_i.delta_p += (p_i.lambda + p_j.lambda + s_corr) * p_i.gradW(p_j, h);
+        for (auto *p_j: p_i.neighbors) {
+            float s_corr = -1.0 * k * pow(p_i.W(*p_j, h) / Wdq, n);
+            p_i.delta_p += (p_i.lambda + p_j->lambda + s_corr) * p_i.gradW(*p_j, h) * (p_i.position - p_j->position);
         }
         p_i.delta_p /= rho_0;
 
         // collide with other particles (may not be necessary)
-        /*for (auto &p_j: p_i.neighbors) {
-            p_i.collide(p_j);
-        }*/
 
         // collide with objects (planes)
         for (auto obj: *collision_objects) {
@@ -124,11 +126,11 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
     }
 
     for (auto &p_i: point_masses) {
-        // update predicted positions
-        p_i.predicted_position += p_i.delta_p;
-        // NOTE: if solver_iters put back in, then the below should be in a separate loop
-        // update velocity
-        //p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
+        // update predicted position and velocity
+        if (!p_i.collision) {
+            p_i.predicted_position += p_i.delta_p;
+            p_i.velocity = 1.0 / delta_t * (p_i.predicted_position - p_i.position);
+        }
 
         // TODO: vorticity confinement
 
@@ -146,6 +148,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         p_i.neighbors.clear();
         p_i.lambda = 0.0;
         p_i.delta_p *= 0.0;
+        p_i.collision = false;
     }
 }
 
@@ -155,19 +158,40 @@ void Water::build_spatial_map() {
   }
   map.clear();
 
-  // TODO (Part 4): Build a spatial map out of all of the point masses.
+  for (auto &p: point_masses) {
+      float hash = hash_position(p.position);
+      if (!map[hash]) {
+          map[hash] = new vector<PointMass *>();
+      }
+      map[hash]->emplace_back(&p);
+  }
 
-}
-
-void Water::self_collide(PointMass &pm, double simulation_steps) {
-  // TODO (Part 4): Handle self-collision for a given point mass.
-
+  float diff = 1.0 / 15.0;
+  for (auto &p: point_masses) {
+      for (float x = -1.0; x <= 1.0; x++) {
+          for (float y = -1.0; y <= 1.0; y++) {
+              for (float z = -1.0; z <= 1.0; z++) {
+                  float hash = hash_position(p.position + diff * Vector3D(x, y, z));
+                  if (map[hash]) {
+                      for (PointMass *pm: *map[hash]) {
+                          p.neighbors.emplace_back(pm);
+                      }
+                  }
+              }
+          }
+      }
+  }
 }
 
 float Water::hash_position(Vector3D pos) {
-  // TODO (Part 4): Hash a 3D position into a unique float identifier that represents membership in some 3D box volume.
-
-  return 0.f; 
+    float n = 15.0;
+    float w = width / n;
+    float h = height / n;
+    float d = depth / n;
+    float w_hash = (pos.x - fmod(pos.x, w)) / w;
+    float h_hash = (pos.y  - fmod(pos.y, h)) / h;
+    float t_hash = (pos.z - fmod(pos.z, d)) / d;
+    return (w_hash * 7.0 + h_hash) * 7.0 + t_hash;
 }
 
 ///////////////////////////////////////////////////////
