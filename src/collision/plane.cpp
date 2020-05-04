@@ -12,14 +12,11 @@ using namespace CGL;
 
 void collideFace(PointMass &pm, Vector3D point, Vector3D normal, float friction) {
     // check for collision with 1 plane/face of "tank", correct point mass position if necessary
-    Vector3D dist = pm.position - point;
-    if ((dot(pm.position-point, normal) < 0.0 && !(dot(pm.last_position - point, normal) < 0.0)) || (dot(pm.position - point, normal) > 0.0 && !(dot(pm.last_position-point, normal) > 0.0))) {
-        // point mass collides
-        Vector3D intersect = pm.position - (dot(dist, normal) - SURFACE_OFFSET) * normal;
-        
-        Vector3D correction = (intersect - pm.last_position);
-
-        pm.position = pm.last_position  + (correction * (1.0 - friction));
+    float t = dot(point - pm.last_position, normal) / dot(pm.velocity, normal);
+    if (t >= 0 && t <= pm.delta_t) {
+        Vector3D tan_p = pm.last_position + t * pm.velocity + SURFACE_OFFSET * normal;
+        pm.velocity -= 2.0 * dot(pm.velocity, normal) * normal + (1 - friction) * normal;
+        pm.predicted_position = tan_p;
     }
 }
 
