@@ -138,6 +138,18 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
         p_i.last_position =  p_i.position;
         p_i.position = p_i.predicted_position;
 
+  // TODO (Part 3): Handle collisions with other primitives.
+  //  for every PointMass, try to collide with every possible CollisionObject
+  for (PointMass &p : point_masses) {
+    for (CollisionObject *co : *collision_objects) {
+      co->collide(p);
+    }
+  }
+    
+  // TODO (Part 2): Constrain the changes to be such that the spring does not change
+  // in length more than 10% per timestep [Provot 1995].
+>>>>>>> 8191e7e2e411a4a0416e77110eec61dc47ad2689
+
         // reset certain PointMass attributes
         p_i.predicted_position *= 0.0;
         p_i.neighbors.clear();
