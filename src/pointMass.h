@@ -38,7 +38,7 @@ struct PointMass {
   std::vector<PointMass *> neighbors;
   float lambda;
   Vector3D delta_p;
-  float radius = 0.01; // (constant) particle radius
+  float radius = 0.0092; // (constant) particle radius
   float delta_t;
   bool collision;
 
