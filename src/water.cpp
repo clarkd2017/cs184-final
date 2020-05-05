@@ -45,7 +45,7 @@ void Water::buildVolume() {
       }
     }
   }*/
-    double x_interval = 0.1;
+    double x_interval = 0.05;
     double y_interval = 0.1;
     double z_interval = 0.1;
     int num_height_points = 3;
@@ -73,7 +73,7 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
     // temporarily (permanently?) define some constants
-    float particle_mass = 1.0;
+    float particle_mass = 0.8;
     float rho_0 = 6378.0;
     float epsilon = 600.0;
     float k = 0.0001;
