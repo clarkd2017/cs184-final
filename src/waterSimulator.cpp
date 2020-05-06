@@ -323,7 +323,7 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
     //normals.col(si + 1) << nb.x, nb.y, nb.z, 0.0;
 
 
-      Sphere s = Sphere(p_pos, 0.01, 0.3, 4, 4);
+      Sphere s = Sphere(p_pos, 0.05, 0.3, 4, 4);
       if (spheres.size()<= i){
         spheres.emplace_back(s);
       } else {
