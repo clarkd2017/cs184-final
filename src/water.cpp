@@ -45,10 +45,10 @@ void Water::buildVolume() {
       }
     }
   }*/
-    double x_interval = 0.05;
+    double x_interval = 0.1;
     double y_interval = 0.1;
     double z_interval = 0.1;
-    int num_height_points = 3;
+    int num_height_points = floor(height / y_interval);
     int num_width_points = floor(width / x_interval);
     int num_depth_points = floor(depth / z_interval);
     double tot_mass = density * (num_width_points * num_height_points * num_depth_points) * 0.000008;
@@ -73,11 +73,11 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
                      vector<Vector3D> external_accelerations,
                      vector<CollisionObject *> *collision_objects) {
     // temporarily (permanently?) define some constants
-    float particle_mass = 0.8;
-    float rho_0 = 6378.0;
+    float particle_mass = 1.0;
+    float rho_0 = 63780.0;
     float epsilon = 600.0;
-    float k = 0.0001;
-    float h = 0.06;
+    float k = 0.001;
+    float h = 0.2;
     float delta_q = 0.03 * h;
     float Wdq = 315.0 / (64.0 * PI * pow(h, 9.0)) *  pow(h * h - delta_q * delta_q, 3.0);
     float n = 4.0;
@@ -138,6 +138,9 @@ void Water::simulate(double frames_per_sec, double simulation_steps, WaterParame
 
         // update position
         p_i.last_position =  p_i.position;
+        if (p_i.predicted_position.y < p_i.radius){
+          p_i.predicted_position.y = p_i.radius;
+        }
         p_i.position = p_i.predicted_position;
 
         // reset certain PointMass attributes
