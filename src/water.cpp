@@ -45,21 +45,21 @@ void Water::buildVolume() {
       }
     }
   }*/
-    double x_interval = 0.05;
-    double y_interval = 0.1;
-    double z_interval = 0.1;
+    double x_interval = 0.01;
+    double y_interval = 0.01;
+    double z_interval = 0.01;
     int num_height_points = 3;
-    int num_width_points = floor(width / x_interval);
-    int num_depth_points = floor(depth / z_interval);
+    int num_width_points = floor(width / x_interval / 10.0);
+    int num_depth_points = floor(depth / z_interval / 10.0);
     double tot_mass = density * (num_width_points * num_height_points * num_depth_points) * 0.000008;
     p_mass = tot_mass / (num_width_points * num_height_points * num_depth_points);
 
     for (int h = 0; h < num_height_points; h++){
         for (int w = 0; w < num_width_points; w++){
             for (int d = 0; d < num_depth_points; d++){
-                double x = x_interval * w + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
+                double x = 0.5 + x_interval * w + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
                 double y = y_interval * h + (((float) rand() / RAND_MAX) - 0.5) / 10.0 + 0.2;
-                double z = z_interval * d + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
+                double z = 0.5 + z_interval * d + (((float) rand() / RAND_MAX) - 0.5) / 10.0;
 
                 PointMass *pm = new PointMass(Vector3D(x, y, z), false);
                 pm->collision = false;
