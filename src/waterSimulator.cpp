@@ -245,33 +245,33 @@ void WaterSimulator::drawContents() {
     break;
   case PHONG:
   
-    // Others
-//    shader.setUniform("u_color", color, false);
-//    shader.setUniform("u_cam_pos", Vector3f(cam_pos.x, cam_pos.y, cam_pos.z), false);
-//    shader.setUniform("u_light_pos", Vector3f(0.5, 2, 2), false);
-//    shader.setUniform("u_light_intensity", Vector3f(3, 3, 3), false);
-//    shader.setUniform("u_texture_1_size", Vector2f(m_gl_texture_1_size.x, m_gl_texture_1_size.y), false);
-//    shader.setUniform("u_texture_2_size", Vector2f(m_gl_texture_2_size.x, m_gl_texture_2_size.y), false);
-//    shader.setUniform("u_texture_3_size", Vector2f(m_gl_texture_3_size.x, m_gl_texture_3_size.y), false);
-//    shader.setUniform("u_texture_4_size", Vector2f(m_gl_texture_4_size.x, m_gl_texture_4_size.y), false);
-//    // Textures
-//    shader.setUniform("u_texture_1", 1, false);
-//    shader.setUniform("u_texture_2", 2, false);
-//    shader.setUniform("u_texture_3", 3, false);
-//    shader.setUniform("u_texture_4", 4, false);
-//
-//    shader.setUniform("u_normal_scaling", m_normal_scaling, false);
-//    shader.setUniform("u_height_scaling", m_height_scaling, false);
-//
-//    shader.setUniform("u_texture_cubemap", 5, false);
-//    drawPhong(shader);
-    break;
+   //  Others
+   // shader.setUniform("u_color", color, false);
+   // shader.setUniform("u_cam_pos", Vector3f(cam_pos.x, cam_pos.y, cam_pos.z), false);
+   // shader.setUniform("u_light_pos", Vector3f(0.5, 2, 2), false);
+   // shader.setUniform("u_light_intensity", Vector3f(3, 3, 3), false);
+   // shader.setUniform("u_texture_1_size", Vector2f(m_gl_texture_1_size.x, m_gl_texture_1_size.y), false);
+   // shader.setUniform("u_texture_2_size", Vector2f(m_gl_texture_2_size.x, m_gl_texture_2_size.y), false);
+   // shader.setUniform("u_texture_3_size", Vector2f(m_gl_texture_3_size.x, m_gl_texture_3_size.y), false);
+   // shader.setUniform("u_texture_4_size", Vector2f(m_gl_texture_4_size.x, m_gl_texture_4_size.y), false);
+   // // Textures
+   shader.setUniform("u_texture_1", 1, false);
+   shader.setUniform("u_texture_2", 2, false);
+   shader.setUniform("u_texture_3", 3, false);
+   shader.setUniform("u_texture_4", 4, false);
+
+   // shader.setUniform("u_normal_scaling", m_normal_scaling, false);
+   // shader.setUniform("u_height_scaling", m_height_scaling, false);
+
+   // shader.setUniform("u_texture_cubemap", 5, false);
+   // drawPhong(shader);
+   //  break;
   }
 
   for (CollisionObject *co : *collision_objects) {
     co->render(shader);
   }
-  
+  #pragma omp parallel for
   for (int i = 0; i < spheres.size(); i++) {
     spheres[i].render(shader);
   }
@@ -339,7 +339,7 @@ void WaterSimulator::drawWireframe(GLShader &shader) {
   // Commented out: the wireframe shader does not have this attribute
   //shader.uploadAttrib("in_normal", normals);
     
-  shader.drawArray(GL_POINTS, 0, water->point_masses.size());
+  //shader.drawArray(GL_POINTS, 0, water->point_masses.size());
 #ifdef LEAK_PATCH_ON
   shader.freeAttrib("in_position");
 #endif
