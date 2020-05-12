@@ -31,78 +31,158 @@
 
 <div>
 
-<h2 align="middle">Overview</h2>
-<p>This project focuses on using particle simulation to create a realistic simulation of water interacting with a simple flat surface. To do so, we will model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting a surface. As a result, the simulation will also model the effects of rain, such as ripples and the formation of puddles.</p>
+<h2 align="middle">Abstract</h2>
+<p>This project focuses on using a position-based fluids method to create a realistic simulation of water particles falling onto and interacting with a tank-like structure. To do so, we model particles to act as fluid particles and use knowledge of the physics of water to determine how the particles should move and react to hitting surfaces. Implementing the position-based fluids method allows the model to follow the tensile properties of a fluid, enforcing incompressibility constraints and maintaining constant density for the water particles— crucial contributions to the realism of the simulation. 
+</p>
 
-<h2 align="middle">Problem Description</h2>
-<p> We will extend the Project 4 code to create our fluid simulation. We will first define a class for modeling a water particle, which will maintain properties like previous and current positions, particle size, and mass. We will then model the forces that will act on these particles, particularly the tensile forces between water particles. We will model the necessary physical constraints on our system based on Muller and Macklin’s conditions to maintain properties such as the shape and density of water droplets, and realistically simulate collision interactions. As a reach goal, we will have our project render particles that model water's reflective and refractive properties. </p>
+<h2 align="middle">Technical Approach</h2>
 
-<h2 align="middle">Goals and Deliverables</h2>
+<p>Building off of the code from Project 4, we created a Water class to model water using a cube volume. We implemented the Water::buildVolume() method to create a cube of point masses, each representing a water particle, and calculate each particle’s mass.  For the simulator application, we implemented WaterSimulator, which draws each of the point masses in the water cube to the screen using GL_POINTS with the shader. The particle rendering was later changed to render particles as spheres. We updated main accordingly to use the WaterSimulator as its application and be able to read and parse Water objects from files. For the Plane object, we modelled the particle collisions as inelastic collisions.
+</p>
 
-<ul>
-<li> Demo: We will be running a non-interactive simulation of water particles falling onto a surface plane.</li>
-<li> Measure of quality: We will judge the quality of our simulation by the speed of running it, and how accurately our model simulates the interaction of fluid particles. Specifically, we will optimize our implementation to realistically simulate fluids without apparent lag or drop in framerate, and obeys the physical constraints we sought to impose on the simulation.</li>
-<li> Plan: For our project to be successful, it must realistically simulate at least one water particle falling on a plane. From the initial time step in which the drop falls from a fixed point above the plane to an appropriate time after the drop hits the plane, the simulation should obey the physics that fluids would be constrained to in the real world. This includes the apparent realism of the motion of particles and shaders we applied to our model.
-</li>
-<li> Aspirational Plan: We would like to be able to render the appearance of water realistically, using its reflective and refractive properties. We would also like to implement fluid-solid object collision if we get ahead of schedule. Interactions between fluids and solids follow different physical constraints than fluids between themselves, so we believe that it could prove to be an interesting stretch goal.</li>
-</ul>
+<p>Below is our initial simulation result after making these changes.</p>
+<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/iLhYCfIH23Q?autoplay=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
 
-<h2 align="middle">Progress</h2>
-
+<p>
+Some updates to <code>PointMass</code> and the <code>Water::simulate()</code> method were also necessary in order to implement our water particle simulation. For <code>PointMass</code>, the <code>velocity</code> attribute had to be changed from a function solely based on position to a dynamic attribute. We also added a <code>lambda</code> variable as the scaling factor for Newton’s method (for solving incompressibility constraint) and methods to compute the SPH kernel and kernel gradient functions.
+</p>
 <div align="center">
-    <img align="middle" src="images/particles&plane.png" width="480px" />
+    <img align="middle" src="images/scaling.png" width="480px" />
+    <figcaption align="middle">Scaling factor for Newton's method</figcaption>
 </div>
 
-<p>Building off of the code from Project 4, we created a Water class to model water using a cube volume. We implemented the <code>Water::buildVolume()</code> method to create a cube of point masses, each representing a water particle, and calculate each particle’s mass.  For the simulator application, we implemented WaterSimulator, which draws each of the point masses in the water cube to the screen using <code>GL_POINTS</code> with the shader. We updated main accordingly to use the WaterSimulator as its application and be able to read and parse Water objects from files.
+<div align="center">
+    <img align="middle" src="images/scaling.png" width="480px" />
+    <figcaption align="middle">Scaling factor for Newton's method</figcaption>
+</div>
+
+<div align="center">
+    <img align="middle" src="images/kernelfns.png" width="480px" />
+    <figcaption align="middle">SPH kernel and kernel gradient functions</figcaption>
+</div>
+
+<p>Using these updates, we were able to build the Water::simulate() method to follow the implementation from Macklin and Müller’s paper. </p>
+
+<div align="center">
+    <img align="middle" src="images/macklinAlg.png" width="480px" />
+    <figcaption align="middle">Macklin and Müller’s Simulation Algorithm</figcaption>
+</div>
+
+<p>Next, we needed to improve the realism of the simulation by enabling the water particles to interact with each other following the tensile properties of a fluid. This would allow us to fully integrate Macklin and Müller’s simulation loop. To do so, we implemented an efficient algorithm for finding neighboring particles using spatial hashing. By finding each particle’s neighbors, we could calculate the tensile forces and enforce incompressibility constraints, and particles could then influence the motion of other particles within a certain neighborhood. 
 </p>
 
-<p>Some updates to <code>PointMass</code> and the <code>Water::simulate()</code> method were also necessary in order to implement our water particle simulation. For <code>PointMass</code>, the <code>velocity</code> attribute had to be changed from a function solely based on position to a dynamic attribute. We also added a <code>lambda</code> variable as the scaling factor for Newton’s method (for minimizing incompressibility) and methods to compute the SPH kernel and kernel gradient functions. Using these updates, we were able to build the <code>Water::simulate()</code> method to follow the implementation from Macklin and Müller’s paper.
+<p>We also decided to adjust our simulation to have our water particles contained within a bounding box representing a “tank”, to further allow us to see how the particles followed fluid-like motion when colliding with walls. To build the bounding box, we added collision detection for 4 additional planes perpendicular to the bottom surface plane, all-together forming a cube structure. Since we wanted to maintain clear visibility of the particles, we chose not to render the planes making up the walls of the bounding box, and rather implemented them as invisible boundaries. 
 </p>
 
-<p> Our current simulation now shows water particles falling and colliding with a plane surface; however water particles do not interact with each other following tensile properties of a fluid. Our next step will be to implement an efficient algorithm for finding neighboring particles, in order to allow us to fully integrate Macklin and Müller’s simulation loop. By finding each particle’s neighbors, we can calculate the tensile forces and enforce incompressibility constraints, and particles can then influence the motion of other particles within a certain neighborhood. After implementing the nearest neighbors algorithm, our final steps to completing our fluid simulation physically is to enforce vorticity confinement and constrain viscosity, which will contribute to the realism of our simulation.
+<p>Finally, we adjusted the shader to render the spheres as only shades of blue as well as semi-transparent to improve the visual appearance of the simulation.</p>
+
+ <div align="center">
+  <table style="width=100%">
+      <tr>
+        <td align="middle">
+        <img src="images/beforeSpheres.png" width="480px" />
+        <figcaption align="middle">Intermediate Water Particle Rendering</figcaption>
+        <td align="middle">
+        <img align="middle" src="images/blueSpheres.png" width="480px" />
+        <figcaption align="middle">Final Water Particle Rendering</figcaption>
+      </tr>
+  </table>
+</div>
+
+<p>Although the method described in Macklin and Müller’s paper also included vorticity confinement and viscosity constrainment, we were unable to make these additions due to time limitations. However, these adjustments would have helped to replace lost energy and any undesirable damping that may have occurred due to the position-based methods, further aiding the realism of the simulation.
 </p>
 
-<h2 align="middle">Project Plan Updates</h2>
-<p>The biggest change in our project plan is when rendering the fluid. Previously we planned to render the particles using a ray tracer and modeling the reflective and refractive properties of each particle. However, a ray tracing model would not be fast enough for real-time rendering. Instead, for our aspirational plan we hope to implement a particle splatting algorithm that renders each particle as an ellipsoid. To implement this, we will follow the paper on particle splatting by Adams, Lenaerts, and Dutre (see Resources).
+<p>
+In addition, further optimization and parallelization would allow for a simulation with more particles, which would more closely model the fluid. 
+If we had more time we would have also liked to do different types of rendering such as a refraction/glass shader or splatting rendering algorithm.
 </p>
 
+<h2 align="middle">Problems Encountered</h2>
 
-<h2 align="middle">Updated Schedule</h2>
 <ul>
-  <li> 4/28-5/1</li>
-  <ul>
-    <li> Add algorithm for finding neighboring particles and implement self-collisions</li>
-  </ul>
-  <li> 5/2-5/5</li>
-  <ul>
-    <li> Vorticity confinement and constrain viscosity (Macklin & Müller)</li>
-    <li> Bonus: render water using a particle splatting algorithm </li>
-  </ul>
-  <li> 5/5-5/7</li>
-  <ul>
-    <li> Practice for final presentation on 5/7</li>
-    <li> Final project video (due 5/12) </li>
-  </ul>
-  <li> 5/8-5/12</li>
-  <ul>
-    <li> Final fixes/clean-up</li>
-    <li> Final report webpage (due 5/12)</li>
-  </ul>
+  <li>Leaky box</li>
+    <ul>
+      <li>We initially only had particles falling on one flat plane surface and did not contain the particles at all. For more realistic water simulation, we needed to contain the water within a box, so we added bounding box by implementing collision to consider invisible walls forming a “tank”. We then adjusted our simulation algorithm to be able to take into account particle collisions with multiple planes. After these adjustments, we found that the bounding box was leaky, with some particles still escaping the box. To fix this issue, we tuned the plane coordinates to make sure they were aligned with the bottom plane.</li>
+    </ul>
+  <li>Spheres intersecting bottom plane</li>
+    <ul>
+      <li> After rendering the particles as spheres instead of points, the water particles were intersecting the bottom plane instead of resting on top of the surface. To fix this, we had to adjust the particle-plane collision to account for the particle’s radius.</li>
+    </ul>
+  <li>Exploding particles</li>
+    <ul>
+      <li> At the start, the particles were positioned to be too close to one another, leading to an explosion effect when the simulation began. We solved this issue by adjusting the particle positions to be more spaced apart.</li>
+      <br>
+      <div align="center">
+        <img align="middle" src="images/explosion.png" width="480px" />
+        <figcaption align="middle">Particle Explosion Effect</figcaption>
+      </div>
+    </ul>
+  <br>  
 </ul>
 
-<h2 align="middle">Slides & Video</h2>
-<a href="https://docs.google.com/presentation/d/1lY2wgYFPfcxfvr4OMaPa8dGAKCwelGQoaorlj-1DoD0/edit?usp=sharing">View our slides here</a>
-<br>
-<br>
-<a href="https://drive.google.com/a/berkeley.edu/file/d/1h7cHrVNUkTdAsxCb5He8fa1gzLLc2R7E/view?usp=sharing">View our video here</a>
+<h2 align="middle">Lessons Learned</h2>
+<ul>
+  <li>How to build off an existing codebase</li>
+  <li>Divide-and-conquer collaboration</li>
+  <li>How to read and implement and a technical paper</li>
+  <li>Working on different components of the rasterization pipeline</li>
+</ul>
 
+<h2 align="middle">Final Simulation Results</h2>
+<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/tdAkVRVSUq4?autoplay=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
+
+<h2 align="middle">Final Project Video</h2>
+<br>
+<a href="https://drive.google.com/file/d/1swTpe7RXmsIFuo7PbmJYhAEY2Wz3PSuY/view?usp=sharing">View our final project video here</a>
+
+<h2 align="middle">Team Member Contributions</h2>
+<ul>
+  <li><b>Dakota</b></li>
+    <ul>
+      <li>Created water class</li>
+      <ul>
+        <li>Input</li>
+        <li>buildVolume() function</li>
+        <li>Mass calculation</li>
+      </ul>
+
+      <li>Rendered particles as spheres with normal shading</li>
+      <li>Plane collision debugging</li>
+      <li>Tuning input constants</li>
+      <li>Adjusted shader to account for color and transparency of water particles</li>
+    </ul>
+  <li><b>Kristine</b></li>
+    <ul>
+      <li>Created WaterSimulator</li>
+      <ul>
+        <li>Modified from ClothSimulator, eliminated springs between point masses</li>
+        <li>Rendered each point mass as a water particle</li>
+      </ul>
+      <li>Altered plane::Collide() to implement invisible bounding box</li>
+      <li>Adjusted constants in simulate algorithm to improve realism of water particle movement</li>
+    </ul>
+  <li><b>Jason</b></li>
+    <ul>
+      <li>Implemented and debugged simulation loop functionality</li>
+      <ul>
+        <li>Researched kernel functions</li>
+        <li>Translated constraint formulas and kernel functions into code</li>
+        <li>Added attributes to Water and PointMass classes</li>
+      </ul>
+      <li>Implemented and debugged plane collision functionality</li>
+      <li>Tuning input constants</li>
+    </ul>
+</ul>
 
 <h2 align="middle">Resources</h2>
 <ul>
-    <li>Adams, Bart, et al. Particle Splatting: Interactive Rendering of Particle-Based Simulation Data. Katholieke Universiteit Leuven, 2006, pp. 1–18, Particle Splatting: Interactive Rendering of Particle-Based Simulation Data.</li>
-    <li>Macklin, M., & Müller, M. (2013). Position based fluids. ACM Transactions on Graphics, 32(4), 1. doi: 10.1145/2461912.2461984</li>
-    <li> https://www.cs.columbia.edu/CAVE/publications/pdfs/Garg_IJCV07.pdf</li>
-  <li> https://david.li/fluid/</li>
-  </ul>
+  <li>Adams, Bart, et al. Particle Splatting: Interactive Rendering of Particle-Based Simulation Data. Katholieke Universiteit Leuven, 2006, pp. 1–18, Particle Splatting: Interactive Rendering of Particle-Based Simulation Data.</li>
+  <li>Macklin, M., & Müller, M. (2013). Position based fluids. ACM Transactions on Graphics, 32(4), 1. doi: 10.1145/2461912.2461984</li>
+  <li>http://mmacklin.com/pbf_slides.pdf</li>
+  <li>https://www.cs.columbia.edu/CAVE/publications/pdfs/Garg_IJCV07.pdf</li>
+  <li>https://david.li/fluid/</li>
+  <li>https://matthias-research.github.io/pages/publications/sca03.pdf</li>
+</ul>
+
 </body>
 </html>
